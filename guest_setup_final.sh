@@ -78,4 +78,8 @@ echo "  • git status"
 echo "  • node --version"
 echo ""
 echo "💡 Zero-persistence: Everything clears on logout"
-echo "" 
+echo ""
+
+# Start a new shell with updated PATH
+# Redirect stderr to suppress any startup messages
+exec bash -l 2>/dev/null 
