@@ -18,6 +18,7 @@ NC='\033[0m' # No Color
 print_header() {
     echo -e "${GREEN}AdminHub Guest Tools Manager${NC}"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "© 2025 Luka Löhr"
     echo ""
 }
 
@@ -31,83 +32,81 @@ fi
 case $COMMAND in
     install-admin)
         print_header
-        echo "📦 Installing developer tools in admin space..."
+        echo "📦 Installiere Entwicklertools im Admin-Bereich..."
         
-        # Check if running as root
+        # Prüfe ob als root ausgeführt
         if [ "$EUID" -ne 0 ]; then 
-            echo -e "${RED}❌ Please run with sudo: sudo $0 install-admin${NC}"
+            echo -e "${RED}❌ Bitte mit sudo ausführen: sudo $0 install-admin${NC}"
             exit 1
         fi
         
-        # Check for Homebrew
+        # Prüfe ob Homebrew installiert ist
         if ! command -v brew &> /dev/null; then
-            echo -e "${RED}❌ Homebrew not found. Please install Homebrew first.${NC}"
-            echo "Visit: https://brew.sh"
+            echo -e "${RED}❌ Homebrew nicht gefunden. Bitte zuerst Homebrew installieren.${NC}"
+            echo "Besuche: https://brew.sh"
             exit 1
         fi
         
-        # Create admin tools directory
-        echo "📁 Creating $ADMIN_TOOLS_DIR directory..."
+        # Admin-Tools Verzeichnis erstellen
+        echo "📁 Erstelle $ADMIN_TOOLS_DIR Verzeichnis..."
         mkdir -p "$ADMIN_TOOLS_DIR/bin"
         
-        # Install tools via Homebrew if not already installed
+        # Prüfe installierte Tools (Homebrew darf nicht als root laufen!)
         echo ""
-        echo "🔧 Installing tools via Homebrew..."
+        echo "🔧 Prüfe installierte Tools..."
         
-        # Python3 (usually pre-installed on macOS)
-        if ! command -v python3 &> /dev/null; then
-            echo "  Installing Python3..."
-            brew install python3
-        else
-            echo "  ✅ Python3 already installed"
+        # Funktion um zu prüfen ob Tool installiert ist
+        check_tool() {
+            local tool=$1
+            local display_name=$2
+            
+            if command -v $tool &> /dev/null; then
+                echo "  ✅ $display_name bereits installiert"
+                return 0
+            else
+                echo "  ⚠️  $display_name nicht gefunden"
+                return 1
+            fi
+        }
+        
+        # Prüfe alle benötigten Tools
+        MISSING_TOOLS=false
+        
+        check_tool "python3" "Python3" || MISSING_TOOLS=true
+        check_tool "git" "Git" || MISSING_TOOLS=true
+        check_tool "node" "Node.js" || MISSING_TOOLS=true
+        check_tool "npm" "npm" || MISSING_TOOLS=true
+        check_tool "jq" "jq" || MISSING_TOOLS=true
+        check_tool "wget" "wget" || MISSING_TOOLS=true
+        
+        # Wenn Tools fehlen, Anweisungen geben
+        if [ "$MISSING_TOOLS" = true ]; then
+            echo ""
+            echo -e "${YELLOW}⚠️  Einige Tools fehlen!${NC}"
+            echo ""
+            echo "Bitte installiere fehlende Tools OHNE sudo:"
+            echo "  1. Öffne ein neues Terminal als normaler Benutzer"
+            echo "  2. Führe aus:"
+            echo "     brew install git node jq wget"
+            echo "  3. Dann führe dieses Script erneut aus"
+            echo ""
+            echo "Trotzdem fortfahren mit vorhandenen Tools..."
         fi
         
-        # Git
-        if ! brew list git &> /dev/null 2>&1; then
-            echo "  Installing Git..."
-            brew install git
-        else
-            echo "  ✅ Git already installed"
-        fi
-        
-        # Node and npm
-        if ! brew list node &> /dev/null 2>&1; then
-            echo "  Installing Node.js and npm..."
-            brew install node
-        else
-            echo "  ✅ Node.js already installed"
-        fi
-        
-        # jq
-        if ! brew list jq &> /dev/null 2>&1; then
-            echo "  Installing jq..."
-            brew install jq
-        else
-            echo "  ✅ jq already installed"
-        fi
-        
-        # wget
-        if ! brew list wget &> /dev/null 2>&1; then
-            echo "  Installing wget..."
-            brew install wget
-        else
-            echo "  ✅ wget already installed"
-        fi
-        
-        # Create symlinks in admin tools directory
+        # Symlinks im Admin-Tools Verzeichnis erstellen
         echo ""
-        echo "🔗 Creating symlinks in $ADMIN_TOOLS_DIR/bin..."
+        echo "🔗 Erstelle Symlinks in $ADMIN_TOOLS_DIR/bin..."
         
-        # Function to create symlink safely
+        # Funktion um Symlinks sicher zu erstellen
         create_symlink() {
             local source=$1
             local target=$2
             
             if [ -e "$source" ]; then
                 ln -sf "$source" "$target"
-                echo "  ✅ Linked $(basename $target)"
+                echo "  ✅ Verlinkt: $(basename $target)"
             else
-                echo "  ⚠️  Source not found: $source"
+                echo "  ⚠️  Quelle nicht gefunden: $source"
             fi
         }
         
@@ -136,34 +135,34 @@ case $COMMAND in
             fi
         done
         
-        # Set permissions
+        # Berechtigungen setzen
         echo ""
-        echo "🔐 Setting permissions..."
+        echo "🔐 Setze Berechtigungen..."
         chmod -R 755 "$ADMIN_TOOLS_DIR"
         
-        # Create simple setup script
+        # Setup-Scripts installieren
         echo ""
-        echo "📝 Installing Terminal setup script..."
+        echo "📝 Installiere Terminal Setup-Scripts..."
         
-        # First copy the simple guest setup script
+        # Kopiere die benötigten Scripts falls vorhanden
         if [ -f "simple_guest_setup.sh" ]; then
             cp simple_guest_setup.sh /usr/local/bin/
             chmod 755 /usr/local/bin/simple_guest_setup.sh
-            echo "  ✅ Installed simple_guest_setup.sh"
+            echo "  ✅ simple_guest_setup.sh installiert"
         fi
         
-        # Then copy the terminal opener
+        # Terminal Opener kopieren
         if [ -f "open_guest_terminal.sh" ]; then
             cp open_guest_terminal.sh /usr/local/bin/open_guest_terminal
             chmod 755 /usr/local/bin/open_guest_terminal
-            echo "  ✅ Installed open_guest_terminal"
+            echo "  ✅ open_guest_terminal installiert"
         fi
         
         echo ""
-        echo -e "${GREEN}✅ Admin tools installation complete!${NC}"
+        echo -e "${GREEN}✅ Admin-Tools Installation abgeschlossen!${NC}"
         echo ""
-        echo "Tools installed in: $ADMIN_TOOLS_DIR/bin/"
-        echo "Next: Run 'sudo $0 create-agent' to set up auto-launch"
+        echo "Tools installiert in: $ADMIN_TOOLS_DIR/bin/"
+        echo "Nächster Schritt: Führe 'sudo $0 create-agent' aus für Auto-Launch"
         ;;
         
     setup)
