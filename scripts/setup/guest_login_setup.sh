@@ -8,7 +8,7 @@ if [[ "$(whoami)" != "Guest" ]]; then
     exit 0
 fi
 
-# Log for debugging
+# Log startup
 echo "[$(date)] Starting Guest login setup" >> /tmp/adminhub-setup.log
 
 # Guest home directory (will be fresh on each login)

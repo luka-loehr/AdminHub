@@ -15,17 +15,17 @@ fi
 
 # Copy the auto setup script
 echo "📋 Installing auto setup script..."
-cp guest_setup_auto.sh /usr/local/bin/
+cp scripts/runtime/guest_setup_auto.sh /usr/local/bin/
 chmod 755 /usr/local/bin/guest_setup_auto.sh
 
 # Copy the login setup script
 echo "📋 Installing login setup script..."
-cp guest_login_setup.sh /usr/local/bin/guest_login_setup
+cp scripts/setup/guest_login_setup.sh /usr/local/bin/guest_login_setup
 chmod 755 /usr/local/bin/guest_login_setup
 
 # Install the LaunchAgent
 echo "🤖 Installing LaunchAgent..."
-cp com.adminhub.guestsetup.plist /Library/LaunchAgents/
+cp launchagents/com.adminhub.guestsetup.plist /Library/LaunchAgents/
 chmod 644 /Library/LaunchAgents/com.adminhub.guestsetup.plist
 
 # Load the LaunchAgent

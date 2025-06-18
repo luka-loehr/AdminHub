@@ -31,19 +31,14 @@ chmod +x *.sh
 
 # Run main setup
 echo "🔧 Running main setup..."
-./guest_tools_setup.sh
+./scripts/setup/guest_tools_setup.sh
 
 # Fix permissions
 echo "🔐 Fixing Homebrew permissions..."
-./fix_homebrew_permissions.sh
+./scripts/utils/fix_homebrew_permissions.sh
 
-# Install LaunchAgent if not already installed
-if [ ! -f "/Library/LaunchAgents/com.adminhub.guestterminal.plist" ]; then
-    echo "📋 Installing LaunchAgent..."
-    cp com.adminhub.guestterminal.plist /Library/LaunchAgents/
-    chmod 644 /Library/LaunchAgents/com.adminhub.guestterminal.plist
-    launchctl load /Library/LaunchAgents/com.adminhub.guestterminal.plist 2>/dev/null || true
-fi
+# Note: LaunchAgent installation is now handled by setup_guest_shell_init.sh
+# Run that script for the permission-free Guest setup
 
 echo ""
 echo "✅ Installation Complete!"
@@ -140,8 +135,7 @@ echo ""
 # Clean up
 rm /tmp/test_adminhub.sh
 
-# After a delay, close all OTHER Terminal windows
-(sleep 5 && osascript -e 'tell application "Terminal" to close (every window whose id is not id of front window)' &) 2>/dev/null || true
+# Note: We no longer use AppleScript to manage Terminal windows
 EOF
 
 chmod +x /tmp/test_adminhub.sh
@@ -155,8 +149,8 @@ echo "➡️  Old Terminals close automatically after 5 seconds"
 echo ""
 sleep 2
 
-# Open new Terminal and run test script
-osascript -e 'tell application "Terminal" to activate' -e 'tell application "Terminal" to do script "/tmp/test_adminhub.sh"'
+# Open new Terminal and run test script (without AppleScript)
+/usr/bin/open -a Terminal /tmp/test_adminhub.sh
 
 echo "✅ New Terminal opened!"
 echo ""
@@ -166,4 +160,4 @@ echo "For Guest users:"
 echo "1. Log out and log in as Guest"
 echo "2. Terminal opens automatically with all tools ready"
 echo ""
-echo "For troubleshooting, see SETUP_README.md" 
+echo "For troubleshooting, see docs/SETUP_README.md" 

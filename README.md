@@ -2,6 +2,20 @@
 
 > 🎛️ Zentrale Steuerzentrale für Schul-MacBooks – Ein mächtiges GUI-Tool zur Fernverwaltung von 100+ Macs
 
+## Quick Start
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/luka-loehr/AdminHub.git
+cd AdminHub
+
+# 2. Run setup
+sudo ./setup.sh
+
+# 3. Enable permission-free Guest setup
+sudo ./scripts/setup/setup_guest_shell_init.sh
+```
+
 ## 🚀 Überblick
 
 AdminHub ist eine native macOS-Anwendung zur zentralen Verwaltung und Steuerung von MacBooks in Schulumgebungen. Das Tool ermöglicht die Installation von Entwicklungstools, Remote-Zugriff und automatisierte Wartung über eine intuitive grafische Oberfläche.
