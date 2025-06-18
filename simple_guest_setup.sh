@@ -2,8 +2,8 @@
 
 # AdminHub Guest Tools - Ready to use!
 clear
-echo "🚀 AdminHub Tools Ready!"
-echo "========================"
+echo "🚀 AdminHub Guest Tools Setup"
+echo "=============================="
 echo ""
 echo "👤 User: $(whoami)"
 echo "📅 $(date)"
@@ -21,6 +21,16 @@ export PATH="/opt/admin-tools/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbi
 EOF
 fi
 
+echo "📝 Setting up environment..."
+echo ""
+
+# Create a script that will run in the new terminal
+cat > /tmp/guest_tools_ready.sh << 'EOF'
+#!/bin/bash
+clear
+echo "🚀 AdminHub Tools Ready!"
+echo "========================"
+echo ""
 echo "📋 Installed tools:"
 echo ""
 
@@ -70,4 +80,33 @@ echo "  • git status"
 echo "  • node --version"
 echo ""
 echo "💡 Zero-persistence: Everything clears on logout"
-echo "" 
+echo ""
+
+# Clean up
+rm -f /tmp/guest_tools_ready.sh
+
+# After a delay, close all OTHER Terminal windows (Guest only)
+if [[ "$(whoami)" == "Guest" ]]; then
+    (sleep 3 && osascript -e 'tell application "Terminal" to close (every window whose id is not id of front window)' &) 2>/dev/null || true
+fi
+EOF
+
+chmod +x /tmp/guest_tools_ready.sh
+
+echo "🔄 Opening new Terminal with tools ready..."
+echo ""
+echo "➡️  New Terminal opens in 2 seconds"
+echo "➡️  This window closes automatically"
+echo ""
+sleep 2
+
+# Open new Terminal and run the ready script
+osascript -e 'tell application "Terminal" to activate' -e 'tell application "Terminal" to do script "/tmp/guest_tools_ready.sh"'
+
+echo "✅ New Terminal opened with tools ready!"
+echo ""
+echo "This window will close in 3 seconds..."
+sleep 3
+
+# Exit this script (which will close this terminal tab)
+exit 0 
