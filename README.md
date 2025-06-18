@@ -103,8 +103,8 @@ Perfekt für Informatik-Unterricht:
 
 ## 📝 Lizenz & Kontakt
 
-Entwickelt für die Kantonsschule XY.
-Bei Fragen: [Admin kontaktieren]
+Entwickelt für das Lessing-Gymnasium Karlsruhe.
+Bei Fragen: IT-Administration kontaktieren
 
 ---
 
