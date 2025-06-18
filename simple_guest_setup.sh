@@ -84,29 +84,40 @@ echo ""
 
 # Clean up
 rm -f /tmp/guest_tools_ready.sh
-
-# After a delay, close all OTHER Terminal windows (Guest only)
-if [[ "$(whoami)" == "Guest" ]]; then
-    (sleep 3 && osascript -e 'tell application "Terminal" to close (every window whose id is not id of front window)' &) 2>/dev/null || true
-fi
 EOF
 
 chmod +x /tmp/guest_tools_ready.sh
 
 echo "🔄 Opening new Terminal with tools ready..."
 echo ""
-echo "➡️  New Terminal opens in 2 seconds"
-echo "➡️  This window closes automatically"
+echo "➡️  New Terminal opens now"
+echo "➡️  All old windows close in 3 seconds"
 echo ""
-sleep 2
 
 # Open new Terminal and run the ready script
 osascript -e 'tell application "Terminal" to activate' -e 'tell application "Terminal" to do script "/tmp/guest_tools_ready.sh"'
 
-echo "✅ New Terminal opened with tools ready!"
-echo ""
-echo "This window will close in 3 seconds..."
-sleep 3
+# Wait a bit for the new terminal to open and become the front window
+sleep 2
 
-# Exit this script (which will close this terminal tab)
+# Now close all other terminals
+echo "🔄 Closing old Terminal windows..."
+
+# Close all windows except the newest one (which should be the front window now)
+osascript <<'APPLESCRIPT'
+tell application "Terminal"
+    set frontWindow to front window
+    set allWindows to windows
+    
+    repeat with aWindow in allWindows
+        if aWindow is not frontWindow then
+            try
+                close aWindow
+            end try
+        end if
+    end repeat
+end tell
+APPLESCRIPT
+
+echo "✅ Done!"
 exit 0 
