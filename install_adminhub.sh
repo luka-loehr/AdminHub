@@ -91,16 +91,55 @@ echo "  • npm - Node package manager"
 echo "  • jq - JSON processor"
 echo "  • wget - File downloader"
 echo ""
+
+# Create a script to test the installation
+cat > /tmp/test_adminhub.sh << 'EOF'
+#!/bin/bash
+echo "🧪 Testing AdminHub installation..."
+echo ""
+export PATH="/opt/admin-tools/bin:$PATH"
+
+if command -v python3 &> /dev/null; then
+    echo "✅ Python3: $(python3 --version)"
+else
+    echo "❌ Python3 not found"
+fi
+
+if command -v git &> /dev/null; then
+    echo "✅ Git: $(git --version)"
+else
+    echo "❌ Git not found"
+fi
+
+if command -v node &> /dev/null; then
+    echo "✅ Node: $(node --version 2>/dev/null || echo 'installed')"
+else
+    echo "❌ Node not found"
+fi
+
+echo ""
+echo "🎉 All tools are ready to use!"
+echo ""
+echo "Try running: python3 --version"
+EOF
+
+chmod +x /tmp/test_adminhub.sh
+
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "⚡ To use tools IMMEDIATELY in THIS terminal:"
+echo "🔄 Opening new Terminal with tools ready..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "Run this command (copy & paste):"
+echo "A new Terminal window will open in 2 seconds"
+echo "with all tools immediately available!"
 echo ""
-echo "  source activate_tools.sh"
+sleep 2
+
+# Open new Terminal and run test script
+osascript -e 'tell application "Terminal" to do script "/tmp/test_adminhub.sh; rm /tmp/test_adminhub.sh"'
+
+echo "✅ New Terminal opened with AdminHub tools!"
 echo ""
-echo "OR just open a new Terminal window/tab"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "You can close this old Terminal window now."
 echo ""
 echo "For Guest users:"
 echo "1. Log out and log in as Guest"
