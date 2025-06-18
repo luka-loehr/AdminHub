@@ -1,26 +1,38 @@
 #!/bin/bash
 
-# AdminHub Quick Setup Script
-# This is the main entry point for setting up AdminHub
+# AdminHub Schnell-Installation
+# Installiert alles was nötig ist in einem Schritt
 
 set -e
 
-echo "🚀 AdminHub Setup"
-echo "================="
+echo "╔═══════════════════════════════════════╗"
+echo "║        🚀 AdminHub Setup 🚀           ║"
+echo "╚═══════════════════════════════════════╝"
 echo ""
 
-# Check if running as sudo
+# Prüfe ob als sudo ausgeführt
 if [ "$EUID" -ne 0 ]; then 
-    echo "❌ Please run with sudo: sudo ./setup.sh"
+    echo "❌ Bitte mit sudo ausführen: sudo ./setup.sh"
     exit 1
 fi
 
-# Run the main installation
-echo "Starting installation..."
+# Schritt 1: Hauptinstallation
+echo "📦 Schritt 1/2: Installiere Entwicklertools..."
 ./scripts/install/install_adminhub.sh
 
+# Schritt 2: Guest-Setup aktivieren
 echo ""
-echo "✅ Setup complete!"
+echo "🔧 Schritt 2/2: Aktiviere Guest-Account Setup..."
+./scripts/setup/setup_guest_shell_init.sh
+
 echo ""
-echo "For the permission-free Guest setup, run:"
-echo "  sudo ./scripts/setup/setup_guest_shell_init.sh" 
+echo "═══════════════════════════════════════════"
+echo "✅ Installation abgeschlossen!"
+echo "═══════════════════════════════════════════"
+echo ""
+echo "🎯 Nächste Schritte:"
+echo "   1. Als Guest-User einloggen"
+echo "   2. Terminal öffnet sich automatisch"
+echo "   3. Alle Tools sind sofort verfügbar!"
+echo ""
+echo "📝 Bei Problemen: siehe README.md" 

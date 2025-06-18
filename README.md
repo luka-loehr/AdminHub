@@ -1,102 +1,111 @@
-# AdminHub - Guest Account Developer Tools
+# AdminHub - Entwicklertools für Guest-Accounts
 
-> 🎛️ Zentrale Steuerzentrale für Schul-MacBooks – Ein mächtiges GUI-Tool zur Fernverwaltung von 100+ Macs
+Ein System, das automatisch Entwicklertools (Python, Git, Node.js, etc.) für Guest-Benutzer auf Schul-MacBooks bereitstellt - ohne nervige Berechtigungsdialoge!
 
-## Quick Start
+## 🚀 Schnellstart
 
 ```bash
-# 1. Clone the repository
+# Repository klonen
 git clone https://github.com/luka-loehr/AdminHub.git
 cd AdminHub
 
-# 2. Run setup
+# Installation ausführen (als Admin)
 sudo ./setup.sh
+```
 
-# 3. Enable permission-free Guest setup
+Das war's! Beim nächsten Guest-Login:
+- Terminal öffnet sich automatisch
+- Alle Tools sind sofort verfügbar
+- Keine Berechtigungsdialoge!
+
+## 📋 Was wird installiert?
+
+- **Python 3** mit pip
+- **Git** für Versionskontrolle  
+- **Node.js** & npm
+- **jq** für JSON-Verarbeitung
+- **wget** für Downloads
+
+## 🎯 Funktionsweise
+
+1. **Admin installiert einmalig die Tools** in `/opt/admin-tools/`
+2. **LaunchAgent** läuft bei jedem Guest-Login
+3. **Automatisches Setup** ohne Benutzerinteraktion
+4. **Tools bleiben erhalten** auch wenn Guest-Account gelöscht wird
+
+## 📁 Projektstruktur
+
+```
+AdminHub/
+├── setup.sh                    # Haupt-Installationsskript
+├── scripts/
+│   ├── install/               # Installations-Skripte
+│   ├── setup/                 # Setup & Konfiguration
+│   ├── runtime/               # Laufzeit-Skripte
+│   ├── utils/                 # Hilfsprogramme
+│   └── deprecated/            # Alte Skripte (nicht mehr verwenden!)
+├── launchagents/              # macOS LaunchAgents
+└── docs/                      # Dokumentation
+```
+
+## 🔧 Erweiterte Installation
+
+Falls der automatische Setup nicht funktioniert:
+
+```bash
+# 1. Tools manuell installieren
+sudo ./scripts/setup/guest_tools_setup.sh install-admin
+
+# 2. Guest-Setup aktivieren  
 sudo ./scripts/setup/setup_guest_shell_init.sh
+
+# 3. Installation testen
+./scripts/setup/guest_tools_setup.sh test
 ```
 
-## 🚀 Überblick
+## 🐛 Fehlerbehebung
 
-AdminHub ist eine native macOS-Anwendung zur zentralen Verwaltung und Steuerung von MacBooks in Schulumgebungen. Das Tool ermöglicht die Installation von Entwicklungstools, Remote-Zugriff und automatisierte Wartung über eine intuitive grafische Oberfläche.
-
-### Kernfunktionen
-
-- **🔧 Remote Dev-Tools**: Zero-Persistence Installation von Entwicklungstools für Guest-Accounts
-- **📡 Auto-Discovery**: Automatische Erkennung aller Macs im Netzwerk
-- **💻 Multi-Terminal**: Gleichzeitiger SSH-Zugriff auf mehrere Systeme
-- **🔄 Bulk-Operations**: Updates und Maintenance für beliebig viele Macs gleichzeitig
-- **🏗️ Modular**: Einfache Erweiterung um neue Tools und Funktionen
-
-## 🏗️ Architektur
-
-```
-┌─────────────────┐         ┌─────────────────┐
-│   AdminHub      │         │  Mac Client     │
-│  (SwiftUI App)  │◄────────┤  - Responder    │
-│  - SQLite DB    │  JSON   │  - SSH Server   │
-│  - Discovery    │  /TLS   │  - LaunchDaemon │
-└─────────────────┘         └─────────────────┘
+### Terminal öffnet sich nicht automatisch
+```bash
+# LaunchAgent neu laden
+sudo launchctl unload /Library/LaunchAgents/com.adminhub.guestsetup.plist
+sudo launchctl load /Library/LaunchAgents/com.adminhub.guestsetup.plist
 ```
 
-### Komponenten
+### Tools nicht verfügbar
+```bash
+# Als Guest-User im Terminal:
+source /usr/local/bin/guest_setup_auto.sh
+```
 
-1. **AdminHub** (Hauptanwendung)
-   - SwiftUI-basierte macOS App
-   - SQLite Datenbank für Geräteverwaltung
-   - Broadcast-Discovery für Netzwerk-Scan
+### Logs prüfen
+```bash
+# Setup-Logs
+cat /tmp/adminhub-setup.log
+cat /tmp/adminhub-setup.err
+```
 
-2. **Responder** (Client-Daemon)
-   - Lightweight Swift Daemon auf jedem verwalteten Mac
-   - Automatische SSH-Key Verwaltung
-   - Status-Reporting und Command-Execution
+## ⚡ Vorteile
 
-## 🛠️ Geplante Features
+- ✅ **Keine Berechtigungsdialoge** - Läuft ohne AppleScript
+- ✅ **Automatisch** - Guest muss nichts machen
+- ✅ **Persistent** - Überlebt Guest-Logout
+- ✅ **Schnell** - Tools in wenigen Sekunden bereit
+- ✅ **Zuverlässig** - Funktioniert bei jedem Login
 
-- [x] Tech-Stack: Swift/SwiftUI
-- [x] Datenbank: SQLite
-- [x] Auto-Discovery Konzept
-- [ ] Responder-Protokoll Implementation
-- [ ] GUI Grundgerüst
-- [ ] SSH-Integration
-- [ ] Tool-Management System
-- [ ] Guest-Account Integration
+## 🏫 Für Schulen
 
-## 📋 Dokumentation
+Perfekt für Informatik-Unterricht:
+- Schüler können sofort loslegen
+- Keine Admin-Rechte nötig
+- Keine Installation auf Schüler-Accounts
+- Automatische Bereinigung nach Logout
 
-Detaillierte Planungen und Entscheidungen finden sich in [`todo.md`](todo.md).
+## 📝 Lizenz & Kontakt
 
-## 🔒 Sicherheit
-
-- SSH-Key basierte Authentifizierung
-- Verschlüsselte Kommunikation (TLS)
-- Nur innerhalb des Schulnetzwerks nutzbar
-- Keine Passwörter im Klartext
-
-## 🚧 Status
-
-**Aktuell in der Planungsphase** – Kein produktiver Code vorhanden.
-
-## 📄 Lizenz
-
-Privates Projekt für Schulzwecke.
-
-## How It Works (Permission-Free!)
-
-The system now works without any Apple permission dialogs:
-
-1. **LaunchAgent** (`com.adminhub.guestsetup`) runs at every Guest login
-2. **Login Setup Script** creates `.zshrc` and `.bash_profile` in the fresh Guest home
-3. **Auto Setup Script** runs when Terminal opens and sets up the tools
-4. **No AppleScript** = No permission dialogs! 🎉
-
-### Key Components:
-
-- `/Library/LaunchAgents/com.adminhub.guestsetup.plist` - Runs at Guest login
-- `/usr/local/bin/guest_login_setup` - Creates shell config files
-- `/usr/local/bin/guest_setup_auto.sh` - Sets up tools when Terminal opens
-- `/opt/admin-tools/` - Persistent tool storage (survives Guest logout)
+Entwickelt für die Kantonsschule XY.
+Bei Fragen: [Admin kontaktieren]
 
 ---
 
-*Entwickelt für die zentrale Verwaltung von Schul-MacBooks mit Fokus auf Benutzerfreundlichkeit und Sicherheit.* 
+**Tipp:** Nach der Installation als Guest-User einloggen und testen! 

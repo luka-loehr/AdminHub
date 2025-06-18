@@ -27,7 +27,7 @@ echo ""
 
 # Make all scripts executable
 echo "📝 Making scripts executable..."
-chmod +x *.sh
+find scripts -name "*.sh" -type f -exec chmod +x {} \;
 
 # Run main setup
 echo "🔧 Running main setup..."
