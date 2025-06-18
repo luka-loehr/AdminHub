@@ -9,6 +9,29 @@ echo "👤 User: $(whoami)"
 echo "📅 $(date)"
 echo ""
 
+# Start a background process that will close THIS terminal window after 10 seconds
+(
+    sleep 10
+    # Get the TTY of this terminal
+    CURRENT_TTY=$(tty)
+    # Use AppleScript to close the terminal window with this TTY
+    osascript -e "tell application \"Terminal\"
+        set windowList to windows
+        repeat with w in windowList
+            set tabList to tabs of w
+            repeat with t in tabList
+                if (tty of t) is \"$CURRENT_TTY\" then
+                    close w
+                    exit repeat
+                end if
+            end repeat
+        end repeat
+    end tell" 2>/dev/null
+) &
+
+echo "⏰ This window will auto-close in 10 seconds..."
+echo ""
+
 # Set PATH for this session
 export PATH="/opt/admin-tools/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 
@@ -94,13 +117,11 @@ echo ""
 # Open new Terminal and run the ready script
 osascript -e 'tell application "Terminal" to activate' -e 'tell application "Terminal" to do script "/tmp/guest_tools_ready.sh"'
 
-# Wait a moment for the new terminal to open
-sleep 1
-
 echo "✅ New Terminal opened!"
 echo ""
-echo "This window will close in 2 seconds..."
-sleep 2
+echo "🔄 This window will close automatically..."
 
-# Simply exit this terminal
-exit 0 
+# Keep the script running so the terminal doesn't show the prompt
+while true; do
+    sleep 1
+done 
