@@ -163,10 +163,6 @@ Dieses Projekt ist unter der MIT-Lizenz mit Namensnennung lizenziert. Bei jeder 
 
 Siehe [LICENSE](LICENSE) für Details.
 
-## 🙏 Danksagung
-
-Entwickelt für das Lessing-Gymnasium Karlsruhe zur Unterstützung des Informatik-Unterrichts.
-
 ---
 
 <p align="center">
