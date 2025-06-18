@@ -15,6 +15,9 @@ EOF
     echo "✅ Environment configured"
 fi
 
+# Also suppress bash update messages
+export BASH_SILENCE_DEPRECATION_WARNING=1
+
 echo ""
 echo "🔄 Loading tools..."
 
@@ -80,6 +83,5 @@ echo ""
 echo "💡 Zero-persistence: Everything clears on logout"
 echo ""
 
-# Start a new shell with updated PATH
-# Redirect stderr to suppress any startup messages
-exec bash -l 2>/dev/null 
+# Start a new shell with the updated PATH
+exec bash -l 
