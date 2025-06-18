@@ -78,7 +78,4 @@ echo "  • git status"
 echo "  • node --version"
 echo ""
 echo "💡 Zero-persistence: Everything clears on logout"
-echo ""
-
-# Start a new shell with the updated PATH
-exec bash -l 
+echo "" 
