@@ -101,10 +101,9 @@ Perfekt für Informatik-Unterricht:
 - Keine Installation auf Schüler-Accounts
 - Automatische Bereinigung nach Logout
 
-## 📝 Lizenz & Kontakt
+## 📝 Über dieses Projekt
 
 Entwickelt für das Lessing-Gymnasium Karlsruhe.
-Bei Fragen: IT-Administration kontaktieren
 
 ---
 
