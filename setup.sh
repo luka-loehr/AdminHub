@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (c) 2025 Luka Löhr
 
 # AdminHub Schnell-Installation
 # Installiert alles was nötig ist in einem Schritt

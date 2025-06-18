@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (c) 2025 Luka Löhr
 
 # AdminHub Deinstallation
 # Entfernt alle installierten Komponenten

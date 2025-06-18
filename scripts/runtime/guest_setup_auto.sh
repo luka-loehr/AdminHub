@@ -1,55 +1,58 @@
 #!/bin/bash
+# Copyright (c) 2025 Luka Löhr
 
 # AdminHub Guest Auto Setup
-# This runs automatically when Guest user opens Terminal
+# Läuft automatisch wenn der Guest-Benutzer das Terminal öffnet
 
-# Only run for Guest user
+# Nur für Guest-Benutzer ausführen
 if [[ "$(whoami)" != "Guest" ]]; then
     return 0 2>/dev/null || exit 0
 fi
 
-# Check if already initialized in this session
+# Prüfe ob bereits in dieser Sitzung initialisiert
 if [[ "$ADMINHUB_INITIALIZED" == "true" ]]; then
     return 0 2>/dev/null || exit 0
 fi
 
-# Mark as initialized
+# Als initialisiert markieren
 export ADMINHUB_INITIALIZED="true"
 
-# Check if this is an interactive terminal (not a script or background process)
+# Prüfe ob dies ein interaktives Terminal ist
 if [[ ! -t 0 ]]; then
     return 0 2>/dev/null || exit 0
 fi
 
-# Check if setup is needed (tools directory doesn't exist)
+# Prüfe ob Setup benötigt wird (Tools-Verzeichnis existiert nicht)
 if [[ ! -d "/Users/Guest/tools/bin" ]]; then
     clear
     echo "╔════════════════════════════════════════╗"
     echo "║     🚀 AdminHub Guest Setup 🚀         ║"
+    echo "║        © 2025 Luka Löhr                ║"
     echo "╚════════════════════════════════════════╝"
     echo ""
-    echo "Setting up development tools..."
+    echo "Entwicklertools werden eingerichtet..."
     echo ""
     
-    # Run the actual setup
+    # Das eigentliche Setup ausführen
     if [[ -f /usr/local/bin/guest_setup_final.sh ]]; then
         /usr/local/bin/guest_setup_final.sh
     elif [[ -f /usr/local/bin/simple_guest_setup.sh ]]; then
         /usr/local/bin/simple_guest_setup.sh
     else
-        echo "⚠️  Setup script not found!"
-        echo "Please contact your administrator."
+        echo "⚠️  Setup-Script nicht gefunden!"
+        echo "Bitte Administrator kontaktieren."
     fi
 else
-    # Tools already set up, just ensure PATH is correct
+    # Tools bereits eingerichtet, nur PATH setzen
     export PATH="/Users/Guest/tools/bin:$PATH"
     
-    # Show welcome message only once per session
+    # Willkommensnachricht nur einmal pro Sitzung zeigen
     if [[ "$ADMINHUB_WELCOME_SHOWN" != "true" ]]; then
         export ADMINHUB_WELCOME_SHOWN="true"
         echo ""
-        echo "✨ AdminHub tools are ready!"
-        echo "Available: python3, git, node, npm, jq, wget"
+        echo "✨ AdminHub Tools sind bereit!"
+        echo "Verfügbar: python3, git, node, npm, jq, wget"
+        echo "© 2025 Luka Löhr"
         echo ""
     fi
 fi 

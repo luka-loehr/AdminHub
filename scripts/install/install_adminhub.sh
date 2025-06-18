@@ -1,163 +1,165 @@
 #!/bin/bash
+# Copyright (c) 2025 Luka Löhr
 
-# AdminHub Master Installation Script
-# This script installs the complete AdminHub system on a new MacBook
+# AdminHub Haupt-Installationsskript
+# Dieses Script installiert das komplette AdminHub System
 
-set -e  # Exit on error
+set -e  # Bei Fehler beenden
 
-echo "🚀 AdminHub Installation Script"
+echo "🚀 AdminHub Installationsskript"
 echo "==============================="
+echo "© 2025 Luka Löhr"
 echo ""
 
-# Check if running as sudo
+# Prüfe ob als sudo ausgeführt
 if [ "$EUID" -ne 0 ]; then 
-    echo "❌ Please run with sudo: sudo ./install_adminhub.sh"
+    echo "❌ Bitte mit sudo ausführen: sudo ./install_adminhub.sh"
     exit 1
 fi
 
-# Check if Homebrew is installed
+# Prüfe ob Homebrew installiert ist
 if ! command -v brew &> /dev/null; then
-    echo "❌ Homebrew is not installed. Please install it first:"
+    echo "❌ Homebrew ist nicht installiert. Bitte zuerst installieren:"
     echo "   /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
     exit 1
 fi
 
-echo "✅ Prerequisites checked"
+echo "✅ Voraussetzungen geprüft"
 echo ""
 
-# Make all scripts executable
-echo "📝 Making scripts executable..."
+# Alle Scripts ausführbar machen
+echo "📝 Mache Scripts ausführbar..."
 find scripts -name "*.sh" -type f -exec chmod +x {} \;
 
-# Run main setup
-echo "🔧 Running main setup..."
+# Haupt-Setup ausführen
+echo "🔧 Führe Haupt-Setup aus..."
 ./scripts/setup/guest_tools_setup.sh
 
-# Fix permissions
-echo "🔐 Fixing Homebrew permissions..."
+# Berechtigungen korrigieren
+echo "🔐 Korrigiere Homebrew-Berechtigungen..."
 ./scripts/utils/fix_homebrew_permissions.sh
 
-# Note: LaunchAgent installation is now handled by setup_guest_shell_init.sh
-# Run that script for the permission-free Guest setup
+# Hinweis: LaunchAgent-Installation wird jetzt von setup_guest_shell_init.sh übernommen
+# Führe dieses Script für das berechtigungsfreie Guest-Setup aus
 
 echo ""
-echo "✅ Installation Complete!"
+echo "✅ Installation abgeschlossen!"
 echo ""
 
-# Setup PATH for current user (non-Guest)
-echo "🔄 Setting up PATH for immediate use..."
+# PATH für aktuellen Benutzer einrichten (nicht Guest)
+echo "🔄 Richte PATH für sofortige Nutzung ein..."
 
-# Get the original user who ran sudo
+# Original-Benutzer ermitteln der sudo ausgeführt hat
 ORIGINAL_USER=$(who am i | awk '{print $1}')
 USER_HOME=$(eval echo ~$ORIGINAL_USER)
 
-# Add to PATH for current session
+# PATH für aktuelle Sitzung hinzufügen
 export PATH="/opt/admin-tools/bin:$PATH"
 
-# Update shell configuration files
+# Shell-Konfigurationsdateien aktualisieren
 if [ -f "$USER_HOME/.zshrc" ]; then
-    # Check if already added
+    # Prüfe ob bereits hinzugefügt
     if ! grep -q "/opt/admin-tools/bin" "$USER_HOME/.zshrc"; then
         echo "" >> "$USER_HOME/.zshrc"
-        echo "# AdminHub tools" >> "$USER_HOME/.zshrc"
+        echo "# AdminHub Tools" >> "$USER_HOME/.zshrc"
         echo "export PATH=\"/opt/admin-tools/bin:\$PATH\"" >> "$USER_HOME/.zshrc"
-        echo "✅ Added to .zshrc"
+        echo "✅ Zu .zshrc hinzugefügt"
     fi
 fi
 
 if [ -f "$USER_HOME/.bash_profile" ]; then
-    # Check if already added
+    # Prüfe ob bereits hinzugefügt
     if ! grep -q "/opt/admin-tools/bin" "$USER_HOME/.bash_profile"; then
         echo "" >> "$USER_HOME/.bash_profile"
-        echo "# AdminHub tools" >> "$USER_HOME/.bash_profile"
+        echo "# AdminHub Tools" >> "$USER_HOME/.bash_profile"
         echo "export PATH=\"/opt/admin-tools/bin:\$PATH\"" >> "$USER_HOME/.bash_profile"
-        echo "✅ Added to .bash_profile"
+        echo "✅ Zu .bash_profile hinzugefügt"
     fi
 fi
 
 echo ""
-echo "🎉 Tools are now available!"
+echo "🎉 Tools sind jetzt verfügbar!"
 echo ""
-echo "Available commands:"
-echo "  • python3 - Python 3 with pip3"
-echo "  • git - Version control"
-echo "  • node - Node.js runtime"
-echo "  • npm - Node package manager"
-echo "  • jq - JSON processor"
-echo "  • wget - File downloader"
+echo "Verfügbare Befehle:"
+echo "  • python3 - Python 3 mit pip3"
+echo "  • git - Versionskontrolle"
+echo "  • node - Node.js Runtime"
+echo "  • npm - Node Package Manager"
+echo "  • jq - JSON Prozessor"
+echo "  • wget - Datei-Downloader"
 echo ""
 
-# Create a script to test the installation
+# Script für Installationstest erstellen
 cat > /tmp/test_adminhub.sh << 'EOF'
 #!/bin/bash
 clear
-echo "🚀 AdminHub Tools Ready!"
+echo "🚀 AdminHub Tools bereit!"
 echo "========================"
+echo "© 2025 Luka Löhr"
 echo ""
 export PATH="/opt/admin-tools/bin:$PATH"
 
-echo "📋 Installed tools:"
+echo "📋 Installierte Tools:"
 echo ""
 
 if command -v python3 &> /dev/null; then
     echo "  ✅ Python $(python3 --version 2>&1 | cut -d' ' -f2)"
 else
-    echo "  ❌ Python3 not found"
+    echo "  ❌ Python3 nicht gefunden"
 fi
 
 if command -v git &> /dev/null; then
     echo "  ✅ Git $(git --version | cut -d' ' -f3)"
 else
-    echo "  ❌ Git not found"
+    echo "  ❌ Git nicht gefunden"
 fi
 
 if command -v node &> /dev/null; then
-    echo "  ✅ Node.js $(node --version 2>/dev/null || echo 'installed')"
+    echo "  ✅ Node.js $(node --version 2>/dev/null || echo 'installiert')"
 else
-    echo "  ❌ Node not found"
+    echo "  ❌ Node nicht gefunden"
 fi
 
 if command -v npm &> /dev/null; then
-    echo "  ✅ npm $(npm --version 2>/dev/null || echo 'installed')"
+    echo "  ✅ npm $(npm --version 2>/dev/null || echo 'installiert')"
 else
-    echo "  ❌ npm not found"
+    echo "  ❌ npm nicht gefunden"
 fi
 
 echo ""
-echo "🎉 All tools are ready to use!"
+echo "🎉 Alle Tools sind bereit!"
 echo ""
-echo "Try these commands:"
+echo "Probiere diese Befehle:"
 echo "  • python3 --version"
 echo "  • git status"
 echo "  • node --version"
 echo ""
 
-# Clean up
+# Aufräumen
 rm /tmp/test_adminhub.sh
 
-# Note: We no longer use AppleScript to manage Terminal windows
+# Hinweis: Wir verwenden kein AppleScript mehr für Terminal-Verwaltung
 EOF
 
 chmod +x /tmp/test_adminhub.sh
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "🔄 Opening new Terminal with tools ready..."
+echo "🔄 Öffne neues Terminal mit bereiten Tools..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "➡️  New Terminal opens in 2 seconds"
-echo "➡️  Old Terminals close automatically after 5 seconds"
+echo "➡️  Neues Terminal öffnet sich in 2 Sekunden"
 echo ""
 sleep 2
 
-# Open new Terminal and run test script (without AppleScript)
+# Neues Terminal öffnen und Test-Script ausführen (ohne AppleScript)
 /usr/bin/open -a Terminal /tmp/test_adminhub.sh
 
-echo "✅ New Terminal opened!"
+echo "✅ Neues Terminal geöffnet!"
 echo ""
-echo "This window will close in 5 seconds..."
+echo "Dieses Fenster schließt sich in 5 Sekunden..."
 echo ""
-echo "For Guest users:"
-echo "1. Log out and log in as Guest"
-echo "2. Terminal opens automatically with all tools ready"
+echo "Für Guest-Benutzer:"
+echo "1. Abmelden und als Guest einloggen"
+echo "2. Terminal öffnet sich automatisch mit allen Tools"
 echo ""
-echo "For troubleshooting, see docs/SETUP_README.md" 
+echo "Bei Problemen siehe docs/SETUP_README.md" 

@@ -1,41 +1,42 @@
 #!/bin/bash
+# Copyright (c) 2025 Luka Löhr
 
-# Setup Guest Shell Initialization
-# This configures a LaunchAgent to set up the Guest user's shell at every login
+# Setup Guest Shell Initialisierung
+# Konfiguriert einen LaunchAgent der die Guest-Shell bei jedem Login einrichtet
 
 set -e
 
-echo "🔧 Setting up Guest shell initialization..."
+echo "🔧 Richte Guest Shell Initialisierung ein..."
 
-# Check if running as root
+# Prüfe ob als root ausgeführt
 if [ "$EUID" -ne 0 ]; then 
-    echo "❌ Please run with sudo"
+    echo "❌ Bitte mit sudo ausführen"
     exit 1
 fi
 
-# Copy the auto setup script
-echo "📋 Installing auto setup script..."
+# Das Auto-Setup Script kopieren
+echo "📋 Installiere Auto-Setup Script..."
 cp scripts/runtime/guest_setup_auto.sh /usr/local/bin/
 chmod 755 /usr/local/bin/guest_setup_auto.sh
 
-# Copy the login setup script
-echo "📋 Installing login setup script..."
+# Das Login-Setup Script kopieren
+echo "📋 Installiere Login-Setup Script..."
 cp scripts/setup/guest_login_setup.sh /usr/local/bin/guest_login_setup
 chmod 755 /usr/local/bin/guest_login_setup
 
-# Install the LaunchAgent
-echo "🤖 Installing LaunchAgent..."
+# Den LaunchAgent installieren
+echo "🤖 Installiere LaunchAgent..."
 cp launchagents/com.adminhub.guestsetup.plist /Library/LaunchAgents/
 chmod 644 /Library/LaunchAgents/com.adminhub.guestsetup.plist
 
-# Load the LaunchAgent
+# Den LaunchAgent laden
 launchctl load /Library/LaunchAgents/com.adminhub.guestsetup.plist 2>/dev/null || true
 
-# Note: The old com.adminhub.guestterminal.plist is no longer needed
-# Terminal is now opened by the guest_login_setup script
+# Hinweis: Der alte com.adminhub.guestterminal.plist wird nicht mehr benötigt
+# Terminal wird jetzt vom guest_login_setup Script geöffnet
 
 echo ""
-echo "✅ Guest shell initialization configured!"
+echo "✅ Guest Shell Initialisierung konfiguriert!"
 echo ""
-echo "The setup will run automatically when Guest user opens Terminal."
-echo "No permission dialogs required! 🎉" 
+echo "Das Setup läuft automatisch wenn der Guest-Benutzer das Terminal öffnet."
+echo "Keine Berechtigungsdialoge erforderlich! 🎉" 

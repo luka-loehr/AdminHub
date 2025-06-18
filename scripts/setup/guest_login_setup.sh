@@ -1,51 +1,52 @@
 #!/bin/bash
+# Copyright (c) 2025 Luka Löhr
 
 # AdminHub Guest Login Setup
-# This runs automatically when Guest user logs in (via LaunchAgent)
+# Läuft automatisch wenn sich der Guest-Benutzer einloggt (via LaunchAgent)
 
-# Only run for Guest user
+# Nur für Guest-Benutzer ausführen
 if [[ "$(whoami)" != "Guest" ]]; then
     exit 0
 fi
 
-# Log startup
-echo "[$(date)] Starting Guest login setup" >> /tmp/adminhub-setup.log
+# Start protokollieren
+echo "[$(date)] Guest Login Setup gestartet" >> /tmp/adminhub-setup.log
 
-# Guest home directory (will be fresh on each login)
+# Guest Home-Verzeichnis (wird bei jedem Login neu erstellt)
 GUEST_HOME="/Users/Guest"
 
-# Wait a moment for the home directory to be fully created
+# Kurz warten bis das Home-Verzeichnis vollständig erstellt ist
 sleep 1
 
-# Create .zshrc with our auto-setup
-echo "[$(date)] Creating .zshrc" >> /tmp/adminhub-setup.log
+# .zshrc mit unserem Auto-Setup erstellen
+echo "[$(date)] Erstelle .zshrc" >> /tmp/adminhub-setup.log
 cat > "$GUEST_HOME/.zshrc" << 'EOF'
 # AdminHub Guest Setup
-# Auto-generated at login
+# Automatisch generiert beim Login
 
-# Source the auto setup script
+# Das Auto-Setup Script laden
 if [ -f /usr/local/bin/guest_setup_auto.sh ]; then
     source /usr/local/bin/guest_setup_auto.sh
 fi
 EOF
 
-# Create .bash_profile for bash compatibility
-echo "[$(date)] Creating .bash_profile" >> /tmp/adminhub-setup.log
+# .bash_profile für Bash-Kompatibilität erstellen
+echo "[$(date)] Erstelle .bash_profile" >> /tmp/adminhub-setup.log
 cat > "$GUEST_HOME/.bash_profile" << 'EOF'
 # AdminHub Guest Setup
-# Auto-generated at login
+# Automatisch generiert beim Login
 
-# Source the auto setup script
+# Das Auto-Setup Script laden
 if [ -f /usr/local/bin/guest_setup_auto.sh ]; then
     source /usr/local/bin/guest_setup_auto.sh
 fi
 EOF
 
-# Set proper permissions
+# Berechtigungen setzen
 chmod 644 "$GUEST_HOME/.zshrc" "$GUEST_HOME/.bash_profile" 2>/dev/null || true
 
-# Open Terminal automatically
-echo "[$(date)] Opening Terminal" >> /tmp/adminhub-setup.log
+# Terminal automatisch öffnen
+echo "[$(date)] Öffne Terminal" >> /tmp/adminhub-setup.log
 /usr/bin/open -a Terminal
 
-echo "[$(date)] Guest login setup completed" >> /tmp/adminhub-setup.log 
+echo "[$(date)] Guest Login Setup abgeschlossen" >> /tmp/adminhub-setup.log 

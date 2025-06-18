@@ -1,7 +1,8 @@
 #!/bin/bash
+# Copyright (c) 2025 Luka Löhr
 
 # AdminHub Guest Tools Manager
-# This script manages development tools for the Guest account
+# Dieses Script verwaltet die Entwicklertools für den Guest-Account
 
 ADMIN_TOOLS_DIR="/opt/admin-tools"
 GUEST_TOOLS_DIR="/Users/Guest/tools"
