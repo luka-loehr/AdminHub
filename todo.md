@@ -506,4 +506,47 @@ CREATE TABLE guest_tools_config (
 - Netzwerk-Latenz bei 100+ Geräten
 - Verschiedene macOS Versionen im Einsatz?
 - **NEU**: Responder-Installation auf allen Macs
-- **NEU**: Firewall-Regeln für Responder-Port 
+- **NEU**: Firewall-Regeln für Responder-Port
+
+---
+
+## 📧 E-Mail Entwurf an Herrn Roth
+
+**Betreff:** AdminHub Update - Konzept steht, ein paar Fragen noch
+
+Hallo Herr Roth,
+
+wie besprochen habe ich über die Ferien am AdminHub-Projekt gearbeitet. Das Konzept steht jetzt und die Umsetzung ist definitiv bis zum nächsten Schuljahr machbar.
+
+**Kurzer Status:**
+- Tech-Stack steht fest: Swift/SwiftUI für die Admin-App + ein kleiner Responder-Daemon auf jedem Mac
+- Die App erkennt automatisch alle Macs im Netzwerk und ermöglicht Multi-Select für Bulk-Operations
+- Tools werden für Guest-Accounts temporär verfügbar gemacht (Zero-Persistence)
+- Remote-Terminal Zugriff auf mehrere Macs gleichzeitig
+
+Ich weiß, Sie hatten anfangs eine einfachere Version im Kopf. Das wäre auch schnell gemacht, aber ich denke, es lohnt sich, gleich etwas Vernünftiges zu bauen - besonders wenn später neue Tools oder Features dazukommen sollen. Die paar Wochen Extra-Aufwand zahlen sich aus.
+
+**Was ich von Ihnen bräuchte:**
+
+1. **Wie bekomme ich den Responder auf alle Macs?**
+   - Haben wir MDM? Apple Remote Desktop?
+   - Oder muss ich mit USB-Stick durch die Labore laufen?
+
+2. **Netzwerk-Details:**
+   - Ist SSH auf den Macs aktiviert?
+   - Welchen Port kann ich für den Responder nutzen?
+
+3. **Guest-Account Setup:**
+   - Wie sind die aktuell konfiguriert?
+   - Wird das Home-Verzeichnis beim Logout gelöscht?
+
+4. **Welche Tools sollen rein?**
+   - Python, Git sind klar - was noch?
+   - Homebrew oder direkte Installation?
+
+Die komplette Planung liegt auf GitHub: https://github.com/luka-loehr/AdminHub
+
+Können wir uns mal kurz zusammensetzen und die Details klären? Dann kann ich richtig loslegen.
+
+Viele Grüße  
+[Dein Name] 
