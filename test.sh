@@ -36,30 +36,35 @@ echo ""
 # 1. Admin-Tools Verzeichnis
 echo "🔍 Prüfe Verzeichnisse:"
 test -d "/opt/admin-tools/bin"
-check $? "/opt/admin-tools/bin existiert"
-((total++)); [ $? -eq 0 ] && ((passed++))
+result=$?
+((total++))
+check $result "/opt/admin-tools/bin existiert" && ((passed++))
 
 # 2. LaunchAgent
 echo ""
 echo "🤖 Prüfe LaunchAgent:"
 test -f "/Library/LaunchAgents/com.adminhub.guestsetup.plist"
-check $? "LaunchAgent installiert"
-((total++)); [ $? -eq 0 ] && ((passed++))
+result=$?
+((total++))
+check $result "LaunchAgent installiert" && ((passed++))
 
-launchctl list | grep -q "com.adminhub.guestsetup"
-check $? "LaunchAgent geladen"
-((total++)); [ $? -eq 0 ] && ((passed++))
+sudo launchctl list 2>/dev/null | grep -q "com.adminhub.guestsetup"
+result=$?
+((total++))
+check $result "LaunchAgent geladen" && ((passed++))
 
 # 3. Scripts
 echo ""
 echo "📜 Prüfe Scripts:"
 test -x "/usr/local/bin/guest_login_setup"
-check $? "guest_login_setup installiert"
-((total++)); [ $? -eq 0 ] && ((passed++))
+result=$?
+((total++))
+check $result "guest_login_setup installiert" && ((passed++))
 
 test -x "/usr/local/bin/guest_setup_auto.sh"
-check $? "guest_setup_auto.sh installiert"
-((total++)); [ $? -eq 0 ] && ((passed++))
+result=$?
+((total++))
+check $result "guest_setup_auto.sh installiert" && ((passed++))
 
 # 4. Tools
 echo ""
@@ -67,16 +72,18 @@ echo "🔧 Prüfe Tools in /opt/admin-tools/bin:"
 tools=("python3" "git" "node" "npm" "jq" "wget")
 for tool in "${tools[@]}"; do
     test -L "/opt/admin-tools/bin/$tool" -o -f "/opt/admin-tools/bin/$tool"
-    check $? "$tool"
-    ((total++)); [ $? -eq 0 ] && ((passed++))
+    result=$?
+    ((total++))
+    check $result "$tool" && ((passed++))
 done
 
 # 5. Berechtigungen
 echo ""
 echo "🔐 Prüfe Berechtigungen:"
 stat -f "%p" /opt/admin-tools 2>/dev/null | grep -q "755$"
-check $? "/opt/admin-tools hat korrekte Berechtigungen"
-((total++)); [ $? -eq 0 ] && ((passed++))
+result=$?
+((total++))
+check $result "/opt/admin-tools hat korrekte Berechtigungen" && ((passed++))
 
 # Zusammenfassung
 echo ""
