@@ -25,6 +25,20 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# Logs
+*.log
+*.err
+/tmp/
+
+# Backups
+*.bak
+*.backup
+*~
+
+# Test files
+test_*
+*.test
+
 # Xcode
 #
 # gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
@@ -82,7 +96,6 @@ fastlane/test_output
 iOSInjectionProject/
 
 # AdminHub specific
-*.log
 *.db
 *.db-journal
 *.db-wal
@@ -95,7 +108,6 @@ ssh_keys/
 *.temp
 *.swp
 *.swo
-*~
 
 # Test output
 test-results/
@@ -112,6 +124,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 .Python
+env/
 venv/
 .env
 
@@ -128,4 +141,8 @@ venv/
 
 # System files
 Thumbs.db
-desktop.ini 
+desktop.ini
+
+# Project specific
+/opt/admin-tools/
+/Users/Guest/tools/ 

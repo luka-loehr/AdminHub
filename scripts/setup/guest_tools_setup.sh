@@ -144,7 +144,7 @@ if [ -n "$TOOLS_TO_INSTALL" ]; then
     echo "✅ Installation abgeschlossen!"
 else
     echo "✅ Alle Tools bereits installiert!"
-fi
+        fi
 INSTALLEOF
             
             chmod +x "$INSTALL_SCRIPT"
@@ -155,7 +155,7 @@ INSTALLEOF
                 echo "Bitte führe die Installation manuell aus:"
                 echo "  brew install node wget"
                 MISSING_TOOLS=false
-            else
+        else
                 echo "Führe Installation aus..."
                 su - "$ORIGINAL_USER" -c "$INSTALL_SCRIPT"
             fi
