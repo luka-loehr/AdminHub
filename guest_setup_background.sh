@@ -1,20 +1,21 @@
 #!/bin/bash
 
-# Silent setup script - runs in background without terminal
-# This prepares everything and then opens Terminal when ready
+# Setup script that runs in the current terminal
+# This prepares everything and shows the ready message
 
 # Set up environment in .zprofile
-if ! grep -q "AdminHub Tools Path" /Users/Guest/.zprofile 2>/dev/null; then
-    cat >> /Users/Guest/.zprofile << 'EOF'
+if ! grep -q "AdminHub Tools Path" ~/.zprofile 2>/dev/null; then
+    cat >> ~/.zprofile << 'EOF'
 
 # AdminHub Tools Path
 export PATH="/opt/admin-tools/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 EOF
 fi
 
-# Create the ready script that will show in Terminal
-cat > /tmp/guest_tools_ready.sh << 'EOF'
-#!/bin/bash
+# Export PATH for current session
+export PATH="/opt/admin-tools/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+
+# Clear and show ready message
 clear
 echo "🚀 AdminHub Tools Ready!"
 echo "========================"
@@ -68,16 +69,4 @@ echo "  • git status"
 echo "  • node --version"
 echo ""
 echo "💡 Zero-persistence: Everything clears on logout"
-echo ""
-
-# Clean up
-rm -f /tmp/guest_tools_ready.sh
-EOF
-
-chmod +x /tmp/guest_tools_ready.sh
-
-# Wait a moment for system to be ready
-sleep 2
-
-# Now open Terminal with everything ready
-osascript -e 'tell application "Terminal" to activate' -e 'tell application "Terminal" to do script "/tmp/guest_tools_ready.sh"' 
+echo "" 
