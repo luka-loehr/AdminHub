@@ -1,97 +1,73 @@
 #!/bin/bash
 
-# Simple setup script for Guest that actually works
-echo "🎯 AdminHub Guest Tools Setup"
-echo "===================================="
+# AdminHub Guest Tools - Ready to use!
+clear
+echo "🚀 AdminHub Tools Ready!"
+echo "========================"
 echo ""
 echo "👤 User: $(whoami)"
-echo "📅 Date: $(date)"
+echo "📅 $(date)"
 echo ""
 
-# Add paths to .zprofile (only if not already there)
-echo "📝 Configuring environment..."
+# Set PATH for this session
+export PATH="/opt/admin-tools/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+
+# Also ensure it's in .zprofile for future sessions
 if ! grep -q "AdminHub Tools Path" ~/.zprofile 2>/dev/null; then
     cat >> ~/.zprofile << 'EOF'
 
 # AdminHub Tools Path
-export PATH="/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+export PATH="/opt/admin-tools/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 EOF
 fi
 
-# Also set PATH for current session
-export PATH="/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
-
-echo "✅ Environment configured"
-echo ""
-echo "🔍 Checking available tools..."
+echo "📋 Installed tools:"
 echo ""
 
-# Check what's actually available
-echo "Development tools available:"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-# Python - check multiple locations
-if [ -x "/usr/bin/python3" ]; then
-    echo "  🐍 python3    $(/usr/bin/python3 --version)"
-elif [ -x "/opt/homebrew/bin/python3" ]; then
-    echo "  🐍 python3    $(/opt/homebrew/bin/python3 --version)"
+# Check tools with nice formatting
+if command -v python3 &> /dev/null; then
+    echo "  ✅ Python $(python3 --version 2>&1 | cut -d' ' -f2)"
 else
-    echo "  ❌ python3    not found"
+    echo "  ❌ Python3 not found"
 fi
 
-# Git - check multiple locations
-if [ -x "/usr/bin/git" ]; then
-    echo "  📚 git        $(/usr/bin/git --version)"
-elif [ -x "/opt/homebrew/bin/git" ]; then
-    echo "  📚 git        $(/opt/homebrew/bin/git --version)"
+if command -v git &> /dev/null; then
+    echo "  ✅ Git $(git --version | cut -d' ' -f3)"
 else
-    echo "  ❌ git        not found"
+    echo "  ❌ Git not found"
 fi
 
-# Node - usually only in homebrew
-if [ -x "/opt/homebrew/bin/node" ]; then
-    echo "  📗 node       $(/opt/homebrew/bin/node --version)"
-    # Create alias if homebrew not in path
-    alias node='/opt/homebrew/bin/node' 2>/dev/null
+if command -v node &> /dev/null; then
+    echo "  ✅ Node.js $(node --version 2>/dev/null || echo 'installed')"
 else
-    echo "  ❌ node       not found (expected at /opt/homebrew/bin/node)"
+    echo "  ❌ Node not found"
 fi
 
-# npm - usually only in homebrew
-if [ -x "/opt/homebrew/bin/npm" ]; then
-    echo "  📦 npm        v$(/opt/homebrew/bin/npm --version)"
-    # Create alias if homebrew not in path
-    alias npm='/opt/homebrew/bin/npm' 2>/dev/null
+if command -v npm &> /dev/null; then
+    echo "  ✅ npm $(npm --version 2>/dev/null || echo 'installed')"
 else
-    echo "  ❌ npm        not found (expected at /opt/homebrew/bin/npm)"
+    echo "  ❌ npm not found"
 fi
 
-# jq - check multiple locations
-if [ -x "/usr/bin/jq" ]; then
-    echo "  🔧 jq         $(/usr/bin/jq --version)"
-elif [ -x "/opt/homebrew/bin/jq" ]; then
-    echo "  🔧 jq         $(/opt/homebrew/bin/jq --version)"
+if command -v jq &> /dev/null; then
+    echo "  ✅ jq $(jq --version 2>/dev/null || echo 'installed')"
 else
-    echo "  ❌ jq         not found"
+    echo "  ❌ jq not found"
 fi
 
-# wget - usually only in homebrew
-if [ -x "/opt/homebrew/bin/wget" ]; then
-    echo "  📥 wget       $(/opt/homebrew/bin/wget --version | head -1)"
-    # Create alias if homebrew not in path
-    alias wget='/opt/homebrew/bin/wget' 2>/dev/null
+if command -v wget &> /dev/null; then
+    echo "  ✅ wget installed"
 else
-    echo "  ❌ wget       not found (expected at /opt/homebrew/bin/wget)"
+    echo "  ❌ wget not found"
 fi
 
 echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🎉 All tools are ready to use!"
 echo ""
-echo "✨ Setup complete!"
-echo "🔄 Please restart Terminal or run: source ~/.zprofile"
+echo "Try these commands:"
+echo "  • python3 --version"
+echo "  • git status"
+echo "  • node --version"
 echo ""
-echo "Press any key to continue..."
-read -n 1 -s
-
-# Source the profile
-source ~/.zprofile 
+echo "💡 Zero-persistence: Everything clears on logout"
+echo "" 
