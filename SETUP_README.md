@@ -129,4 +129,40 @@ chmod +x *.sh
 - Automatic updates
 
 ## Contact
-For issues or questions about the school deployment, contact the IT administration team. 
+For issues or questions about the school deployment, contact the IT administration team.
+
+## Alternative Setup: Permission-Free Method (Recommended)
+
+If you encounter permission dialogs when the Guest user logs in, use this alternative setup method that runs directly in the user's shell without requiring AppleScript permissions:
+
+### Installation Steps:
+
+1. **Make scripts executable:**
+   ```bash
+   chmod +x *.sh
+   ```
+
+2. **Run the main installation:**
+   ```bash
+   sudo ./install_adminhub.sh
+   ```
+
+3. **Setup shell initialization (instead of LaunchAgent):**
+   ```bash
+   sudo ./setup_guest_shell_init.sh
+   ```
+
+### How it works:
+
+- Instead of using AppleScript to open a new Terminal window, the setup runs automatically when the Guest user opens Terminal
+- The script is sourced from `.zshrc` / `.bash_profile`
+- No permission dialogs required!
+- The setup only runs once per session
+- If tools are already set up, it just shows a welcome message
+
+### Benefits:
+
+✅ No Apple permission dialogs  
+✅ Works in the already-open Terminal  
+✅ Faster and more reliable  
+✅ Compatible with all macOS versions  

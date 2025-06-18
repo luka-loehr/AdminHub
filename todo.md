@@ -607,3 +607,17 @@ sudo ./guest_tools_setup.sh create-agent
 2. [x] LaunchAgent installieren: `sudo ./guest_tools_setup.sh create-agent`
 3. [ ] Als Guest-User einloggen und testen
 4. [ ] Logout-Cleanup verifizieren 
+
+## Recent Updates
+
+### Permission-Free Terminal Setup (Implemented)
+- ✅ Created `guest_setup_auto.sh` - runs from shell init instead of AppleScript
+- ✅ Created `setup_guest_shell_init.sh` - configures .zshrc/.bash_profile
+- ✅ No more Apple permission dialogs!
+- ✅ Works in already-open Terminal window
+- ✅ Removes old LaunchAgent automatically
+
+### Next Steps
+- [ ] Test the new setup on a fresh Guest account
+- [ ] Update main install script to use new method by default
+- [ ] Consider removing old AppleScript-based scripts 

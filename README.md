@@ -1,4 +1,4 @@
-# AdminHub
+# AdminHub - Guest Account Developer Tools
 
 > 🎛️ Zentrale Steuerzentrale für Schul-MacBooks – Ein mächtiges GUI-Tool zur Fernverwaltung von 100+ Macs
 
@@ -66,6 +66,22 @@ Detaillierte Planungen und Entscheidungen finden sich in [`todo.md`](todo.md).
 ## 📄 Lizenz
 
 Privates Projekt für Schulzwecke.
+
+## How It Works (Permission-Free!)
+
+The system now works without any Apple permission dialogs:
+
+1. **LaunchAgent** (`com.adminhub.guestsetup`) runs at every Guest login
+2. **Login Setup Script** creates `.zshrc` and `.bash_profile` in the fresh Guest home
+3. **Auto Setup Script** runs when Terminal opens and sets up the tools
+4. **No AppleScript** = No permission dialogs! 🎉
+
+### Key Components:
+
+- `/Library/LaunchAgents/com.adminhub.guestsetup.plist` - Runs at Guest login
+- `/usr/local/bin/guest_login_setup` - Creates shell config files
+- `/usr/local/bin/guest_setup_auto.sh` - Sets up tools when Terminal opens
+- `/opt/admin-tools/` - Persistent tool storage (survives Guest logout)
 
 ---
 
