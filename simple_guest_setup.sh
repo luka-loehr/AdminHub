@@ -90,34 +90,17 @@ chmod +x /tmp/guest_tools_ready.sh
 
 echo "🔄 Opening new Terminal with tools ready..."
 echo ""
-echo "➡️  New Terminal opens now"
-echo "➡️  All old windows close in 3 seconds"
-echo ""
 
 # Open new Terminal and run the ready script
 osascript -e 'tell application "Terminal" to activate' -e 'tell application "Terminal" to do script "/tmp/guest_tools_ready.sh"'
 
-# Wait a bit for the new terminal to open and become the front window
+# Wait a moment for the new terminal to open
+sleep 1
+
+echo "✅ New Terminal opened!"
+echo ""
+echo "This window will close in 2 seconds..."
 sleep 2
 
-# Now close all other terminals
-echo "🔄 Closing old Terminal windows..."
-
-# Close all windows except the newest one (which should be the front window now)
-osascript <<'APPLESCRIPT'
-tell application "Terminal"
-    set frontWindow to front window
-    set allWindows to windows
-    
-    repeat with aWindow in allWindows
-        if aWindow is not frontWindow then
-            try
-                close aWindow
-            end try
-        end if
-    end repeat
-end tell
-APPLESCRIPT
-
-echo "✅ Done!"
+# Simply exit this terminal
 exit 0 
