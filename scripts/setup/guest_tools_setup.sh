@@ -79,18 +79,95 @@ case $COMMAND in
         check_tool "jq" "jq" || MISSING_TOOLS=true
         check_tool "wget" "wget" || MISSING_TOOLS=true
         
-        # Wenn Tools fehlen, Anweisungen geben
+        # Wenn Tools fehlen, frage ob sie installiert werden sollen
         if [ "$MISSING_TOOLS" = true ]; then
             echo ""
-            echo -e "${YELLOW}⚠️  Einige Tools fehlen!${NC}"
+            echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+            echo -e "${YELLOW}⚠️  ACHTUNG: Einige Tools fehlen!${NC}"
+            echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
             echo ""
-            echo "Bitte installiere fehlende Tools OHNE sudo:"
-            echo "  1. Öffne ein neues Terminal als normaler Benutzer"
-            echo "  2. Führe aus:"
-            echo "     brew install git node jq wget"
-            echo "  3. Dann führe dieses Script erneut aus"
+            echo "Damit wir den Schülern die gewünschten Tools auf dem"
+            echo "Guest-Account bereitstellen können, müssen diese"
+            echo "installiert werden."
             echo ""
-            echo "Trotzdem fortfahren mit vorhandenen Tools..."
+            echo -e "${GREEN}Soll ich die fehlenden Tools jetzt installieren?${NC}"
+            echo ""
+            echo -n "Antwort (j/n): "
+            read -r response
+            
+            if [[ ! "$response" =~ ^[jJ]$ ]]; then
+                echo ""
+                echo -e "${RED}❌ Setup abgebrochen.${NC}"
+                echo "Die Tools müssen installiert sein für AdminHub."
+                exit 1
+            fi
+            
+            echo ""
+            echo "🚀 Installiere fehlende Tools..."
+            echo ""
+            
+            # Ermittle den echten Benutzer (nicht root)
+            if [ -n "$SUDO_USER" ]; then
+                ORIGINAL_USER="$SUDO_USER"
+            else
+                ORIGINAL_USER=$(who am i | awk '{print $1}')
+            fi
+            
+            # Falls immer noch root, versuche es anders
+            if [ "$ORIGINAL_USER" = "root" ] || [ -z "$ORIGINAL_USER" ]; then
+                # Hole den Benutzer aus dem Home-Verzeichnis des Terminals
+                ORIGINAL_USER=$(stat -f "%Su" /dev/console)
+            fi
+            
+            echo "🔄 Verwende Benutzer '$ORIGINAL_USER' für Installation..."
+            echo ""
+            
+            # Erstelle temporäres Script für Installation
+            INSTALL_SCRIPT="/tmp/adminhub_install_tools.sh"
+            cat > "$INSTALL_SCRIPT" << 'INSTALLEOF'
+#!/bin/bash
+echo "📦 Installiere Tools via Homebrew..."
+
+# Array mit zu installierenden Tools
+TOOLS_TO_INSTALL=""
+
+# Prüfe welche Tools fehlen und füge sie zur Liste hinzu
+command -v git &> /dev/null || TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL git"
+command -v node &> /dev/null || TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL node"
+command -v jq &> /dev/null || TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL jq"
+command -v wget &> /dev/null || TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL wget"
+
+if [ -n "$TOOLS_TO_INSTALL" ]; then
+    echo "Installiere: $TOOLS_TO_INSTALL"
+    brew install $TOOLS_TO_INSTALL
+    echo ""
+    echo "✅ Installation abgeschlossen!"
+else
+    echo "✅ Alle Tools bereits installiert!"
+fi
+INSTALLEOF
+            
+            chmod +x "$INSTALL_SCRIPT"
+            
+            # Führe Installation als normaler Benutzer aus
+            if [ "$ORIGINAL_USER" = "root" ] || [ -z "$ORIGINAL_USER" ]; then
+                echo -e "${RED}❌ Konnte Benutzernamen nicht ermitteln.${NC}"
+                echo "Bitte führe die Installation manuell aus:"
+                echo "  brew install node wget"
+                MISSING_TOOLS=false
+            else
+                echo "Führe Installation aus..."
+                su - "$ORIGINAL_USER" -c "$INSTALL_SCRIPT"
+            fi
+            
+            # Aufräumen
+            rm -f "$INSTALL_SCRIPT"
+            
+            echo ""
+            echo -e "${GREEN}✅ Tools wurden installiert!${NC}"
+            echo ""
+            echo "Fahre mit Setup fort..."
+            sleep 2
         fi
         
         # Symlinks im Admin-Tools Verzeichnis erstellen
@@ -162,7 +239,6 @@ case $COMMAND in
         echo -e "${GREEN}✅ Admin-Tools Installation abgeschlossen!${NC}"
         echo ""
         echo "Tools installiert in: $ADMIN_TOOLS_DIR/bin/"
-        echo "Nächster Schritt: Führe 'sudo $0 create-agent' aus für Auto-Launch"
         ;;
         
     setup)
