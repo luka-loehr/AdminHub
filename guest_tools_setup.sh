@@ -1,374 +1,348 @@
 #!/bin/bash
 
-# AdminHub Simplified - Guest Tools Manager
-# This script manages development tools for Guest accounts on macOS
+# AdminHub Guest Tools Manager
+# This script manages development tools for the Guest account
 
-set -e
-
-# Configuration
 ADMIN_TOOLS_DIR="/opt/admin-tools"
-GUEST_TOOLS_DIR="/Users/Guest/DevTools"
-GUEST_BIN_DIR="$GUEST_TOOLS_DIR/bin"
-TOOLS_TO_INSTALL=("python3" "git" "node" "npm" "pip3" "jq" "wget")
+GUEST_TOOLS_DIR="/Users/Guest/tools"
+LAUNCHAGENT_PLIST="/Library/LaunchAgents/com.adminhub.guesttools.plist"
+TERMINAL_PLIST="/Library/LaunchAgents/com.adminhub.guestterminal.plist"
 
-# Colors for output
-RED='\033[0;31m'
+# Color codes
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# Helper functions
-log_info() {
-    echo -e "${GREEN}✅ $1${NC}"
-}
-
-log_error() {
-    echo -e "${RED}❌ $1${NC}"
-}
-
-log_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
-}
-
-check_admin() {
-    if [[ $EUID -eq 0 ]]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-# Main functions
-install_tools_admin() {
-    echo "🔧 Installing development tools in admin space..."
-    
-    # Create admin tools directory (needs sudo)
-    if ! check_admin; then
-        log_error "Creating $ADMIN_TOOLS_DIR requires sudo privileges"
-        echo "Please run: sudo $0 install-admin"
-        exit 1
-    fi
-    
-    mkdir -p "$ADMIN_TOOLS_DIR/bin"
-    log_info "Created $ADMIN_TOOLS_DIR"
-    
-    # Now drop sudo for Homebrew operations
-    echo "📦 Installing tools via Homebrew (running as regular user)..."
-    
-    # Check for Homebrew as regular user
-    if ! sudo -u "$SUDO_USER" bash -c "command -v brew &> /dev/null"; then
-        log_error "Homebrew not found!"
-        echo "Please install Homebrew first:"
-        echo '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
-        exit 1
-    fi
-    
-    BREW_PATH=$(sudo -u "$SUDO_USER" bash -c "which brew")
-    log_info "Found Homebrew at $BREW_PATH"
-    
-    # Install tools via Homebrew as regular user
-    
-    # Python
-    if ! sudo -u "$SUDO_USER" bash -c "brew list python@3.12 &> /dev/null"; then
-        echo "🐍 Installing Python 3..."
-        sudo -u "$SUDO_USER" bash -c "brew install python@3.12"
-    else
-        log_info "Python 3 already installed"
-    fi
-    
-    # Git
-    if ! sudo -u "$SUDO_USER" bash -c "brew list git &> /dev/null"; then
-        echo "📚 Installing Git..."
-        sudo -u "$SUDO_USER" bash -c "brew install git"
-    else
-        log_info "Git already installed"
-    fi
-    
-    # Node.js
-    if ! sudo -u "$SUDO_USER" bash -c "brew list node &> /dev/null"; then
-        echo "📗 Installing Node.js..."
-        sudo -u "$SUDO_USER" bash -c "brew install node"
-    else
-        log_info "Node.js already installed"
-    fi
-    
-    # jq (JSON processor)
-    if ! sudo -u "$SUDO_USER" bash -c "brew list jq &> /dev/null"; then
-        echo "🔧 Installing jq..."
-        sudo -u "$SUDO_USER" bash -c "brew install jq"
-    else
-        log_info "jq already installed"
-    fi
-    
-    # wget (download tool)
-    if ! sudo -u "$SUDO_USER" bash -c "brew list wget &> /dev/null"; then
-        echo "📥 Installing wget..."
-        sudo -u "$SUDO_USER" bash -c "brew install wget"
-    else
-        log_info "wget already installed"
-    fi
-    
-    # Get brew prefix
-    BREW_PREFIX=$(sudo -u "$SUDO_USER" bash -c "brew --prefix")
-    
-    # Create symlinks in admin tools directory (with sudo)
-    echo "🔗 Creating symlinks in $ADMIN_TOOLS_DIR/bin..."
-    
-    # Create symlinks for all tools
-    ln -sf "$BREW_PREFIX/bin/python3" "$ADMIN_TOOLS_DIR/bin/python3"
-    ln -sf "$BREW_PREFIX/bin/pip3" "$ADMIN_TOOLS_DIR/bin/pip3"
-    ln -sf "$BREW_PREFIX/bin/git" "$ADMIN_TOOLS_DIR/bin/git"
-    ln -sf "$BREW_PREFIX/bin/node" "$ADMIN_TOOLS_DIR/bin/node"
-    ln -sf "$BREW_PREFIX/bin/npm" "$ADMIN_TOOLS_DIR/bin/npm"
-    ln -sf "$BREW_PREFIX/bin/jq" "$ADMIN_TOOLS_DIR/bin/jq"
-    ln -sf "$BREW_PREFIX/bin/wget" "$ADMIN_TOOLS_DIR/bin/wget"
-    
-    # Also copy the actual Python3 framework
-    if [ -d "$BREW_PREFIX/opt/python@3.12/Frameworks" ]; then
-        echo "📦 Copying Python framework..."
-        cp -R "$BREW_PREFIX/opt/python@3.12/Frameworks" "$ADMIN_TOOLS_DIR/" 2>/dev/null || true
-    fi
-    
-    log_info "Admin tools setup complete!"
-    
-    # Show installed tools
-    echo -e "\n📋 Installed tools in $ADMIN_TOOLS_DIR/bin:"
-    ls -la "$ADMIN_TOOLS_DIR/bin/"
-}
-
-setup_guest_tools() {
-    # Check if we're running as Guest
-    CURRENT_USER=$(whoami)
-    
-    # Only proceed if we're Guest or forcing
-    if [[ "$CURRENT_USER" != "Guest" ]] && [[ "$1" != "--force" ]] && [[ "$1" != "--in-terminal" ]]; then
-        # Silently exit - no need to log anything for non-Guest users
-        exit 0
-    fi
-    
-    # Clear screen for clean display in terminal
-    if [[ "$1" == "--in-terminal" ]]; then
-        sleep 1  # Give Terminal time to open
-    fi
-    
-    echo "🚀 Setting up development tools for Guest account..."
+print_header() {
+    echo -e "${GREEN}AdminHub Guest Tools Manager${NC}"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
-    echo "👤 User: $CURRENT_USER"
-    echo "📅 Date: $(date)"
-    echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo ""
-    
-    # Create Guest tools directory
-    if [[ "$CURRENT_USER" == "Guest" ]] || [[ "$1" == "--force" ]] || [[ "$1" == "--in-terminal" ]]; then
-        mkdir -p "$GUEST_BIN_DIR" 2>/dev/null || {
-            log_error "Cannot create $GUEST_BIN_DIR"
-            log_error "Make sure you're running as Guest user"
+}
+
+# If no arguments provided, run install-admin by default
+if [ $# -eq 0 ]; then
+    COMMAND="install-admin"
+else
+    COMMAND=$1
+fi
+
+case $COMMAND in
+    install-admin)
+        print_header
+        echo "📦 Installing developer tools in admin space..."
+        
+        # Check if running as root
+        if [ "$EUID" -ne 0 ]; then 
+            echo -e "${RED}❌ Please run with sudo: sudo $0 install-admin${NC}"
             exit 1
+        fi
+        
+        # Check for Homebrew
+        if ! command -v brew &> /dev/null; then
+            echo -e "${RED}❌ Homebrew not found. Please install Homebrew first.${NC}"
+            echo "Visit: https://brew.sh"
+            exit 1
+        fi
+        
+        # Create admin tools directory
+        echo "📁 Creating $ADMIN_TOOLS_DIR directory..."
+        mkdir -p "$ADMIN_TOOLS_DIR/bin"
+        
+        # Install tools via Homebrew if not already installed
+        echo ""
+        echo "🔧 Installing tools via Homebrew..."
+        
+        # Python3 (usually pre-installed on macOS)
+        if ! command -v python3 &> /dev/null; then
+            echo "  Installing Python3..."
+            brew install python3
+        else
+            echo "  ✅ Python3 already installed"
+        fi
+        
+        # Git
+        if ! brew list git &> /dev/null 2>&1; then
+            echo "  Installing Git..."
+            brew install git
+        else
+            echo "  ✅ Git already installed"
+        fi
+        
+        # Node and npm
+        if ! brew list node &> /dev/null 2>&1; then
+            echo "  Installing Node.js and npm..."
+            brew install node
+        else
+            echo "  ✅ Node.js already installed"
+        fi
+        
+        # jq
+        if ! brew list jq &> /dev/null 2>&1; then
+            echo "  Installing jq..."
+            brew install jq
+        else
+            echo "  ✅ jq already installed"
+        fi
+        
+        # wget
+        if ! brew list wget &> /dev/null 2>&1; then
+            echo "  Installing wget..."
+            brew install wget
+        else
+            echo "  ✅ wget already installed"
+        fi
+        
+        # Create symlinks in admin tools directory
+        echo ""
+        echo "🔗 Creating symlinks in $ADMIN_TOOLS_DIR/bin..."
+        
+        # Function to create symlink safely
+        create_symlink() {
+            local source=$1
+            local target=$2
+            
+            if [ -e "$source" ]; then
+                ln -sf "$source" "$target"
+                echo "  ✅ Linked $(basename $target)"
+            else
+                echo "  ⚠️  Source not found: $source"
+            fi
         }
-        log_info "Created $GUEST_BIN_DIR"
         
-        # Copy tools from admin directory
-        echo "📦 Starting tool installation..."
+        # Find the correct paths and create symlinks
+        if command -v python3 &> /dev/null; then
+            create_symlink "$(which python3)" "$ADMIN_TOOLS_DIR/bin/python3"
+            # Also link pip3 if it exists
+            if command -v pip3 &> /dev/null; then
+                create_symlink "$(which pip3)" "$ADMIN_TOOLS_DIR/bin/pip3"
+            fi
+        fi
+        
+        if command -v git &> /dev/null; then
+            create_symlink "$(which git)" "$ADMIN_TOOLS_DIR/bin/git"
+        fi
+        
+        # Node tools might be in different locations
+        for tool in node npm npx jq wget; do
+            # First check homebrew location
+            if [ -e "/opt/homebrew/bin/$tool" ]; then
+                create_symlink "/opt/homebrew/bin/$tool" "$ADMIN_TOOLS_DIR/bin/$tool"
+            elif [ -e "/usr/local/bin/$tool" ]; then
+                create_symlink "/usr/local/bin/$tool" "$ADMIN_TOOLS_DIR/bin/$tool"
+            elif command -v $tool &> /dev/null; then
+                create_symlink "$(which $tool)" "$ADMIN_TOOLS_DIR/bin/$tool"
+            fi
+        done
+        
+        # Set permissions
         echo ""
+        echo "🔐 Setting permissions..."
+        chmod -R 755 "$ADMIN_TOOLS_DIR"
         
-        if [[ -d "$ADMIN_TOOLS_DIR/bin" ]]; then
-            # Copy each tool individually with progress
-            for tool in "${TOOLS_TO_INSTALL[@]}"; do
-                echo -n "  Installing $tool... "
-                if cp -R "$ADMIN_TOOLS_DIR/bin/$tool" "$GUEST_BIN_DIR/" 2>/dev/null; then
-                    echo "✅"
-                    sleep 0.2  # Visual effect
-                else
-                    echo "⚠️  (might already exist)"
-                fi
-            done
+        # Create simple setup script
+        echo ""
+        echo "📝 Installing Terminal setup script..."
+        
+        # First copy the simple guest setup script
+        if [ -f "simple_guest_setup.sh" ]; then
+            cp simple_guest_setup.sh /usr/local/bin/
+            chmod 755 /usr/local/bin/simple_guest_setup.sh
+            echo "  ✅ Installed simple_guest_setup.sh"
+        fi
+        
+        # Then copy the terminal opener
+        if [ -f "open_guest_terminal.sh" ]; then
+            cp open_guest_terminal.sh /usr/local/bin/open_guest_terminal
+            chmod 755 /usr/local/bin/open_guest_terminal
+            echo "  ✅ Installed open_guest_terminal"
+        fi
+        
+        echo ""
+        echo -e "${GREEN}✅ Admin tools installation complete!${NC}"
+        echo ""
+        echo "Tools installed in: $ADMIN_TOOLS_DIR/bin/"
+        echo "Next: Run 'sudo $0 create-agent' to set up auto-launch"
+        ;;
+        
+    setup)
+        print_header
+        echo "🚀 Setting up tools for current user..."
+        
+        # Only proceed if we're the Guest user
+        if [ "$USER" != "Guest" ]; then
+            echo -e "${YELLOW}⚠️  This command is meant for the Guest user.${NC}"
+            echo "Current user: $USER"
             echo ""
-            log_info "All tools copied to Guest directory"
-        else
-            log_error "Admin tools directory not found!"
-            log_error "Please run: sudo $0 install-admin"
+            echo "For admin setup, use: sudo $0 install-admin"
             exit 1
         fi
         
-        # Update PATH in Guest's shell profile
-        PROFILE_FILE="/Users/Guest/.zprofile"
-        PATH_LINE='export PATH="'$GUEST_BIN_DIR':$PATH"'
+        # Check if admin tools exist
+        if [ ! -d "$ADMIN_TOOLS_DIR/bin" ]; then
+            echo -e "${RED}❌ Admin tools not found at $ADMIN_TOOLS_DIR${NC}"
+            echo "Please run: sudo $0 install-admin"
+            exit 1
+        fi
         
-        if ! grep -q "$GUEST_BIN_DIR" "$PROFILE_FILE" 2>/dev/null; then
-            echo "$PATH_LINE" >> "$PROFILE_FILE"
-            log_info "Updated PATH in $PROFILE_FILE"
+        # Create Guest tools directory
+        echo "📁 Creating Guest tools directory..."
+        mkdir -p "$GUEST_TOOLS_DIR/bin"
+        
+        # Copy tools to Guest directory
+        echo "📋 Copying tools to Guest directory..."
+        cp -R "$ADMIN_TOOLS_DIR/bin/"* "$GUEST_TOOLS_DIR/bin/" 2>/dev/null || true
+        
+        # Update shell profile
+        echo "🔧 Updating shell profile..."
+        PROFILE="$HOME/.zprofile"
+        
+        # Add to PATH if not already there
+        if ! grep -q "$GUEST_TOOLS_DIR/bin" "$PROFILE" 2>/dev/null; then
+            echo "" >> "$PROFILE"
+            echo "# AdminHub Guest Tools" >> "$PROFILE"
+            echo "export PATH=\"$GUEST_TOOLS_DIR/bin:\$PATH\"" >> "$PROFILE"
+        fi
+        
+        echo ""
+        echo -e "${GREEN}✅ Guest tools setup complete!${NC}"
+        echo ""
+        echo "Tools available at: $GUEST_TOOLS_DIR/bin/"
+        echo "Restart Terminal or run: source ~/.zprofile"
+        ;;
+        
+    cleanup)
+        print_header
+        echo "🧹 Cleaning up Guest tools..."
+        
+        if [ "$USER" = "Guest" ] && [ -d "$GUEST_TOOLS_DIR" ]; then
+            rm -rf "$GUEST_TOOLS_DIR"
+            echo "✅ Removed $GUEST_TOOLS_DIR"
+            
+            # Remove from profile
+            if [ -f "$HOME/.zprofile" ]; then
+                sed -i '' '/# AdminHub Guest Tools/,+1d' "$HOME/.zprofile" 2>/dev/null || true
+                echo "✅ Cleaned .zprofile"
+            fi
         else
-            log_info "PATH already configured"
+            echo "No Guest tools found to clean."
+        fi
+        ;;
+        
+    create-agent)
+        print_header
+        echo "🤖 Creating LaunchAgent for Terminal auto-open..."
+        
+        # Check if running as root
+        if [ "$EUID" -ne 0 ]; then 
+            echo -e "${RED}❌ Please run with sudo: sudo $0 create-agent${NC}"
+            exit 1
         fi
         
-        # Make tools executable
-        chmod +x "$GUEST_BIN_DIR/"* 2>/dev/null || true
-        
-        echo ""
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo ""
-        log_info "Guest tools setup complete!"
-        echo ""
-        echo "📋 Available Development Tools:"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo ""
-        
-        # Show installed tools with icons and descriptions
-        echo "  🐍 Python 3    $(python3 --version 2>/dev/null || echo 'Not found')"
-        echo "  📦 pip3        Package manager for Python"
-        echo "  📚 Git         $(git --version 2>/dev/null || echo 'Not found')"
-        echo "  📗 Node.js     $(node --version 2>/dev/null || echo 'Not found')"
-        echo "  📦 npm         $(npm --version 2>/dev/null || echo 'Not found')"
-        echo "  🔧 jq          Command-line JSON processor"
-        echo "  📥 wget        $(wget --version 2>/dev/null | head -1 || echo 'Not found')"
-        echo ""
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo ""
-        echo "✨ All tools are ready to use!"
-        echo "💡 Tools are located in: $GUEST_BIN_DIR"
-        echo "🔒 Zero-persistence: Everything will be removed on logout"
-        echo ""
-        echo "Happy coding! 🚀"
-        echo ""
-        
-        # If in terminal, keep it open
-        if [[ "$1" == "--in-terminal" ]]; then
-            echo "Press any key to start using the terminal..."
-            read -n 1 -s
-            clear
-        fi
-    else
-        echo "To actually copy files, run as Guest user or use --force flag"
-    fi
-}
-
-cleanup_guest_tools() {
-    echo "🧹 Cleaning up Guest tools..."
-    
-    if [[ -d "$GUEST_TOOLS_DIR" ]]; then
-        rm -rf "$GUEST_TOOLS_DIR"
-        log_info "Removed $GUEST_TOOLS_DIR"
-    else
-        log_warning "Guest tools directory not found"
-    fi
-    
-    # Remove PATH entry from profile
-    if [[ -f "/Users/Guest/.zprofile" ]]; then
-        sed -i '' "/$GUEST_BIN_DIR/d" "/Users/Guest/.zprofile" 2>/dev/null || true
-        log_info "Cleaned up .zprofile"
-    fi
-}
-
-create_launch_agent() {
-    echo "🚀 Creating LaunchAgent for automatic Guest setup..."
-    
-    if ! check_admin; then
-        log_error "Creating LaunchAgent requires sudo privileges"
-        echo "Please run: sudo $0 create-agent"
-        exit 1
-    fi
-    
-    PLIST_PATH="/Library/LaunchAgents/com.adminhub.guesttools.plist"
-    SCRIPT_PATH="/usr/local/bin/guest_tools_setup.sh"
-    
-    # Copy this script to a system location
-    cp "$0" "$SCRIPT_PATH"
-    chmod +x "$SCRIPT_PATH"
-    log_info "Copied script to $SCRIPT_PATH"
-    
-    # Create LaunchAgent plist
-    cat > "$PLIST_PATH" << EOF
+        # Create LaunchAgent for terminal
+        cat > "$TERMINAL_PLIST" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.adminhub.guesttools</string>
+    <string>com.adminhub.guestterminal</string>
     <key>ProgramArguments</key>
     <array>
-        <string>$SCRIPT_PATH</string>
-        <string>setup</string>
+        <string>/usr/local/bin/open_guest_terminal</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
+    <key>UserName</key>
+    <string>Guest</string>
     <key>StandardOutPath</key>
-    <string>/tmp/guesttools.log</string>
+    <string>/tmp/adminhub-terminal.log</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/guesttools.error.log</string>
+    <string>/tmp/adminhub-terminal.err</string>
 </dict>
 </plist>
 EOF
-    
-    chmod 644 "$PLIST_PATH"
-    log_info "Created LaunchAgent at $PLIST_PATH"
-    
-    # Load the agent
-    launchctl load "$PLIST_PATH" 2>/dev/null || true
-    log_info "LaunchAgent loaded"
-    
-    echo -e "\n📋 LaunchAgent will automatically:"
-    echo "  - Run when any user logs in"
-    echo "  - Set up tools if user is 'Guest'"
-    echo "  - Log output to /tmp/guesttools.log"
-}
-
-test_setup() {
-    echo "🧪 Testing Guest Tools Setup"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    
-    echo -e "\n👤 Current user: $(whoami)"
-    
-    echo -e "\n📍 System locations:"
-    echo "  Admin tools: $ADMIN_TOOLS_DIR"
-    echo "  Guest tools: $GUEST_TOOLS_DIR"
-    
-    echo -e "\n🔍 Checking admin tools:"
-    if [[ -d "$ADMIN_TOOLS_DIR/bin" ]]; then
-        log_info "Admin tools directory exists"
-        ls -la "$ADMIN_TOOLS_DIR/bin/" 2>/dev/null | grep -E "python3|git|node|npm" || log_warning "No tools found"
-    else
-        log_error "Admin tools directory not found"
-    fi
-    
-    echo -e "\n🔍 Checking Homebrew tools:"
-    for tool in python3 git node npm; do
-        if command -v $tool &> /dev/null; then
-            log_info "$tool: $(which $tool)"
-        else
-            log_error "$tool: not found"
-        fi
-    done
-    
-    echo -e "\n🔍 Checking LaunchAgent:"
-    if [[ -f "/Library/LaunchAgents/com.adminhub.guesttools.plist" ]]; then
-        log_info "LaunchAgent installed"
-    else
-        log_warning "LaunchAgent not installed"
-    fi
-}
-
-# Main script logic
-case "${1:-help}" in
-    install-admin)
-        install_tools_admin
-        ;;
-    setup)
-        setup_guest_tools "$2"
-        ;;
-    cleanup)
-        cleanup_guest_tools
-        ;;
-    create-agent)
-        create_launch_agent
-        ;;
-    test)
-        test_setup
-        ;;
-    *)
-        echo "AdminHub Guest Tools Manager"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        
+        # Set permissions
+        chmod 644 "$TERMINAL_PLIST"
+        
+        # Load the agent
+        launchctl load "$TERMINAL_PLIST" 2>/dev/null || true
+        
         echo ""
+        echo -e "${GREEN}✅ LaunchAgent created successfully!${NC}"
+        echo ""
+        echo "Terminal will now open automatically when Guest logs in."
+        ;;
+        
+    test)
+        print_header
+        echo "🧪 Testing current setup..."
+        echo ""
+        
+        # Test admin tools
+        echo "Admin tools directory:"
+        if [ -d "$ADMIN_TOOLS_DIR/bin" ]; then
+            echo "  ✅ $ADMIN_TOOLS_DIR/bin exists"
+            echo "  Contents: $(ls -1 $ADMIN_TOOLS_DIR/bin 2>/dev/null | tr '\n' ' ')"
+        else
+            echo "  ❌ $ADMIN_TOOLS_DIR/bin not found"
+        fi
+        
+        echo ""
+        echo "Testing tool availability:"
+        
+        # Function to test tool
+        test_tool() {
+            local tool=$1
+            local version_flag=$2
+            
+            if [ -e "$ADMIN_TOOLS_DIR/bin/$tool" ]; then
+                echo -n "  ✅ $tool: "
+                if [ -x "$ADMIN_TOOLS_DIR/bin/$tool" ]; then
+                    $ADMIN_TOOLS_DIR/bin/$tool $version_flag 2>&1 | head -1 || echo "installed"
+                else
+                    echo "not executable"
+                fi
+            else
+                echo "  ❌ $tool: not found in admin tools"
+            fi
+        }
+        
+        test_tool "python3" "--version"
+        test_tool "git" "--version"
+        test_tool "node" "--version"
+        test_tool "npm" "--version"
+        test_tool "jq" "--version"
+        test_tool "wget" "--version"
+        
+        echo ""
+        echo "LaunchAgent status:"
+        if [ -f "$TERMINAL_PLIST" ]; then
+            echo "  ✅ Terminal LaunchAgent installed"
+            if launchctl list | grep -q "com.adminhub.guestterminal"; then
+                echo "  ✅ Terminal LaunchAgent loaded"
+            else
+                echo "  ⚠️  Terminal LaunchAgent not loaded"
+            fi
+        else
+            echo "  ❌ Terminal LaunchAgent not installed"
+        fi
+        
+        echo ""
+        echo "Current user: $USER"
+        if [ "$USER" = "Guest" ]; then
+            echo "PATH includes admin tools: "
+            if echo $PATH | grep -q "$ADMIN_TOOLS_DIR/bin"; then
+                echo "  ✅ Yes"
+            else
+                echo "  ❌ No - run 'source ~/.zprofile' or restart Terminal"
+            fi
+        fi
+        ;;
+        
+    *)
+        print_header
         echo "Usage: $0 <command>"
         echo ""
         echo "Commands:"
