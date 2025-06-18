@@ -39,6 +39,8 @@ echo "  • Entferne Scripts..."
 rm -f /usr/local/bin/guest_login_setup
 rm -f /usr/local/bin/guest_setup_auto.sh
 rm -f /usr/local/bin/guest_setup_final.sh
+rm -f /usr/local/bin/guest_setup_background.sh
+rm -f /usr/local/bin/guest_tools_setup.sh
 rm -f /usr/local/bin/simple_guest_setup.sh
 rm -f /usr/local/bin/open_guest_terminal
 
