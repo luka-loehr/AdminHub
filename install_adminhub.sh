@@ -48,16 +48,62 @@ fi
 echo ""
 echo "✅ Installation Complete!"
 echo ""
-echo "Next steps:"
-echo "1. Log out of your current account"
-echo "2. Log in as Guest"
-echo "3. Terminal will open automatically with development tools ready"
+
+# Setup PATH for current user (non-Guest)
+echo "🔄 Setting up PATH for immediate use..."
+
+# Get the original user who ran sudo
+ORIGINAL_USER=$(who am i | awk '{print $1}')
+USER_HOME=$(eval echo ~$ORIGINAL_USER)
+
+# Add to PATH for current session
+export PATH="/opt/admin-tools/bin:$PATH"
+
+# Update shell configuration files
+if [ -f "$USER_HOME/.zshrc" ]; then
+    # Check if already added
+    if ! grep -q "/opt/admin-tools/bin" "$USER_HOME/.zshrc"; then
+        echo "" >> "$USER_HOME/.zshrc"
+        echo "# AdminHub tools" >> "$USER_HOME/.zshrc"
+        echo "export PATH=\"/opt/admin-tools/bin:\$PATH\"" >> "$USER_HOME/.zshrc"
+        echo "✅ Added to .zshrc"
+    fi
+fi
+
+if [ -f "$USER_HOME/.bash_profile" ]; then
+    # Check if already added
+    if ! grep -q "/opt/admin-tools/bin" "$USER_HOME/.bash_profile"; then
+        echo "" >> "$USER_HOME/.bash_profile"
+        echo "# AdminHub tools" >> "$USER_HOME/.bash_profile"
+        echo "export PATH=\"/opt/admin-tools/bin:\$PATH\"" >> "$USER_HOME/.bash_profile"
+        echo "✅ Added to .bash_profile"
+    fi
+fi
+
 echo ""
-echo "Installed tools:"
-echo "  • Python 3 with pip"
-echo "  • Git"
-echo "  • Node.js with npm"
-echo "  • jq (JSON processor)"
-echo "  • wget"
+echo "🎉 Tools are now available!"
+echo ""
+echo "Available commands:"
+echo "  • python3 - Python 3 with pip3"
+echo "  • git - Version control"
+echo "  • node - Node.js runtime"
+echo "  • npm - Node package manager"
+echo "  • jq - JSON processor"
+echo "  • wget - File downloader"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "⚡ To use tools IMMEDIATELY in THIS terminal:"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "Run this command (copy & paste):"
+echo ""
+echo "  source activate_tools.sh"
+echo ""
+echo "OR just open a new Terminal window/tab"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "For Guest users:"
+echo "1. Log out and log in as Guest"
+echo "2. Terminal will open automatically with all tools ready"
 echo ""
 echo "For troubleshooting, see SETUP_README.md" 
