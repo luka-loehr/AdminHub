@@ -549,4 +549,40 @@ Die komplette Planung liegt auf GitHub: https://github.com/luka-loehr/AdminHub
 Können wir uns mal kurz zusammensetzen und die Details klären? Dann kann ich richtig loslegen.
 
 Viele Grüße  
-[Dein Name] 
+[Dein Name]
+
+---
+
+## 🚀 Vereinfachte Version - Implementierung
+
+### [Heute] - Erste funktionierende Version
+- **Erstellt**: `guest_tools_setup.sh` - Bash-Script für Guest-Tools-Management
+- **Features**:
+  - Installiert Tools über Homebrew in Admin-Space
+  - Kopiert Tools automatisch für Guest-Account
+  - LaunchAgent für automatisches Setup beim Login
+  - Cleanup-Funktion beim Logout
+  
+### Implementierte Befehle:
+```bash
+# Tools im Admin-Space installieren (benötigt sudo)
+sudo ./guest_tools_setup.sh install-admin
+
+# LaunchAgent für Auto-Setup erstellen (benötigt sudo) 
+sudo ./guest_tools_setup.sh create-agent
+
+# Tools für Guest einrichten
+./guest_tools_setup.sh setup
+
+# Tools vom Guest entfernen
+./guest_tools_setup.sh cleanup
+
+# Aktuellen Status testen
+./guest_tools_setup.sh test
+```
+
+### Nächste Schritte für Test:
+1. [ ] Script als Admin ausführen: `sudo ./guest_tools_setup.sh install-admin`
+2. [ ] LaunchAgent installieren: `sudo ./guest_tools_setup.sh create-agent`
+3. [ ] Als Guest-User einloggen und testen
+4. [ ] Logout-Cleanup verifizieren 
