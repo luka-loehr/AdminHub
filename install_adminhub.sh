@@ -95,32 +95,53 @@ echo ""
 # Create a script to test the installation
 cat > /tmp/test_adminhub.sh << 'EOF'
 #!/bin/bash
-echo "🧪 Testing AdminHub installation..."
+clear
+echo "🚀 AdminHub Tools Ready!"
+echo "========================"
 echo ""
 export PATH="/opt/admin-tools/bin:$PATH"
 
+echo "📋 Installed tools:"
+echo ""
+
 if command -v python3 &> /dev/null; then
-    echo "✅ Python3: $(python3 --version)"
+    echo "  ✅ Python $(python3 --version 2>&1 | cut -d' ' -f2)"
 else
-    echo "❌ Python3 not found"
+    echo "  ❌ Python3 not found"
 fi
 
 if command -v git &> /dev/null; then
-    echo "✅ Git: $(git --version)"
+    echo "  ✅ Git $(git --version | cut -d' ' -f3)"
 else
-    echo "❌ Git not found"
+    echo "  ❌ Git not found"
 fi
 
 if command -v node &> /dev/null; then
-    echo "✅ Node: $(node --version 2>/dev/null || echo 'installed')"
+    echo "  ✅ Node.js $(node --version 2>/dev/null || echo 'installed')"
 else
-    echo "❌ Node not found"
+    echo "  ❌ Node not found"
+fi
+
+if command -v npm &> /dev/null; then
+    echo "  ✅ npm $(npm --version 2>/dev/null || echo 'installed')"
+else
+    echo "  ❌ npm not found"
 fi
 
 echo ""
 echo "🎉 All tools are ready to use!"
 echo ""
-echo "Try running: python3 --version"
+echo "Try these commands:"
+echo "  • python3 --version"
+echo "  • git status"
+echo "  • node --version"
+echo ""
+
+# Clean up
+rm /tmp/test_adminhub.sh
+
+# After a delay, close all OTHER Terminal windows
+(sleep 5 && osascript -e 'tell application "Terminal" to close (every window whose id is not id of front window)' &) 2>/dev/null || true
 EOF
 
 chmod +x /tmp/test_adminhub.sh
@@ -129,20 +150,20 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "🔄 Opening new Terminal with tools ready..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "A new Terminal window will open in 2 seconds"
-echo "with all tools immediately available!"
+echo "➡️  New Terminal opens in 2 seconds"
+echo "➡️  Old Terminals close automatically after 5 seconds"
 echo ""
 sleep 2
 
 # Open new Terminal and run test script
-osascript -e 'tell application "Terminal" to do script "/tmp/test_adminhub.sh; rm /tmp/test_adminhub.sh"'
+osascript -e 'tell application "Terminal" to activate' -e 'tell application "Terminal" to do script "/tmp/test_adminhub.sh"'
 
-echo "✅ New Terminal opened with AdminHub tools!"
+echo "✅ New Terminal opened!"
 echo ""
-echo "You can close this old Terminal window now."
+echo "This window will close in 5 seconds..."
 echo ""
 echo "For Guest users:"
 echo "1. Log out and log in as Guest"
-echo "2. Terminal will open automatically with all tools ready"
+echo "2. Terminal opens automatically with all tools ready"
 echo ""
 echo "For troubleshooting, see SETUP_README.md" 
