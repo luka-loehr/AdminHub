@@ -161,7 +161,11 @@ setup_guest_tools() {
     
     # Create Guest tools directory
     if [[ "$CURRENT_USER" == "Guest" ]] || [[ "$1" == "--force" ]] || [[ "$1" == "--in-terminal" ]]; then
-        mkdir -p "$GUEST_BIN_DIR"
+        mkdir -p "$GUEST_BIN_DIR" 2>/dev/null || {
+            log_error "Cannot create $GUEST_BIN_DIR"
+            log_error "Make sure you're running as Guest user"
+            exit 1
+        }
         log_info "Created $GUEST_BIN_DIR"
         
         # Copy tools from admin directory
