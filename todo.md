@@ -561,8 +561,15 @@ Viele Grüße
   - Installiert Tools über Homebrew in Admin-Space
   - Kopiert Tools automatisch für Guest-Account
   - LaunchAgent für automatisches Setup beim Login
+  - Terminal öffnet sich automatisch für Guest mit Live-Progress
   - Cleanup-Funktion beim Logout
   
+### Implementierte Komponenten:
+1. **guest_tools_setup.sh** - Hauptscript für Tool-Management
+2. **open_guest_terminal.sh** - Öffnet Terminal für Guest
+3. **com.adminhub.guesttools.plist** - LaunchAgent für Tool-Installation
+4. **com.adminhub.guestterminal.plist** - LaunchAgent für Terminal-Anzeige
+
 ### Implementierte Befehle:
 ```bash
 # Tools im Admin-Space installieren (benötigt sudo)
@@ -581,8 +588,22 @@ sudo ./guest_tools_setup.sh create-agent
 ./guest_tools_setup.sh test
 ```
 
+### Was beim Guest-Login passiert:
+1. Terminal öffnet sich automatisch
+2. Zeigt "AdminHub Guest Tools Setup" Banner
+3. Live-Installation aller Tools mit Progress-Anzeige
+4. Übersichtliche Tool-Liste mit Icons und Versionen
+5. Wartet auf Tastendruck bevor Terminal bereit ist
+
+### Installierte Tools:
+- 🐍 Python 3 + pip3
+- 📚 Git
+- 📗 Node.js + npm  
+- 🔧 jq (JSON processor)
+- 📥 wget (Download tool)
+
 ### Nächste Schritte für Test:
-1. [ ] Script als Admin ausführen: `sudo ./guest_tools_setup.sh install-admin`
-2. [ ] LaunchAgent installieren: `sudo ./guest_tools_setup.sh create-agent`
+1. [x] Script als Admin ausführen: `sudo ./guest_tools_setup.sh install-admin`
+2. [x] LaunchAgent installieren: `sudo ./guest_tools_setup.sh create-agent`
 3. [ ] Als Guest-User einloggen und testen
 4. [ ] Logout-Cleanup verifizieren 

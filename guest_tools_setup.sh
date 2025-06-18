@@ -9,7 +9,7 @@ set -e
 ADMIN_TOOLS_DIR="/opt/admin-tools"
 GUEST_TOOLS_DIR="/Users/Guest/DevTools"
 GUEST_BIN_DIR="$GUEST_TOOLS_DIR/bin"
-TOOLS_TO_INSTALL=("python3" "git" "node" "npm" "pip3")
+TOOLS_TO_INSTALL=("python3" "git" "node" "npm" "pip3" "jq" "wget")
 
 # Colors for output
 RED='\033[0;31m'
@@ -42,59 +42,77 @@ check_admin() {
 install_tools_admin() {
     echo "🔧 Installing development tools in admin space..."
     
-    # Check if running as admin
+    # Create admin tools directory (needs sudo)
     if ! check_admin; then
-        log_error "This command requires sudo privileges"
+        log_error "Creating $ADMIN_TOOLS_DIR requires sudo privileges"
         echo "Please run: sudo $0 install-admin"
         exit 1
     fi
     
-    # Create admin tools directory
     mkdir -p "$ADMIN_TOOLS_DIR/bin"
     log_info "Created $ADMIN_TOOLS_DIR"
     
-    # Check for Homebrew
-    if ! command -v brew &> /dev/null; then
+    # Now drop sudo for Homebrew operations
+    echo "📦 Installing tools via Homebrew (running as regular user)..."
+    
+    # Check for Homebrew as regular user
+    if ! sudo -u "$SUDO_USER" bash -c "command -v brew &> /dev/null"; then
         log_error "Homebrew not found!"
         echo "Please install Homebrew first:"
         echo '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
         exit 1
     fi
     
-    log_info "Found Homebrew at $(which brew)"
+    BREW_PATH=$(sudo -u "$SUDO_USER" bash -c "which brew")
+    log_info "Found Homebrew at $BREW_PATH"
     
-    # Install tools via Homebrew
-    echo "📦 Installing tools..."
+    # Install tools via Homebrew as regular user
     
     # Python
-    if ! brew list python@3.12 &> /dev/null; then
+    if ! sudo -u "$SUDO_USER" bash -c "brew list python@3.12 &> /dev/null"; then
         echo "🐍 Installing Python 3..."
-        brew install python@3.12
+        sudo -u "$SUDO_USER" bash -c "brew install python@3.12"
     else
         log_info "Python 3 already installed"
     fi
     
     # Git
-    if ! brew list git &> /dev/null; then
+    if ! sudo -u "$SUDO_USER" bash -c "brew list git &> /dev/null"; then
         echo "📚 Installing Git..."
-        brew install git
+        sudo -u "$SUDO_USER" bash -c "brew install git"
     else
         log_info "Git already installed"
     fi
     
     # Node.js
-    if ! brew list node &> /dev/null; then
+    if ! sudo -u "$SUDO_USER" bash -c "brew list node &> /dev/null"; then
         echo "📗 Installing Node.js..."
-        brew install node
+        sudo -u "$SUDO_USER" bash -c "brew install node"
     else
         log_info "Node.js already installed"
     fi
     
-    # Create symlinks in admin tools directory
-    echo "🔗 Creating symlinks in $ADMIN_TOOLS_DIR/bin..."
+    # jq (JSON processor)
+    if ! sudo -u "$SUDO_USER" bash -c "brew list jq &> /dev/null"; then
+        echo "🔧 Installing jq..."
+        sudo -u "$SUDO_USER" bash -c "brew install jq"
+    else
+        log_info "jq already installed"
+    fi
     
-    # Find brew prefix
-    BREW_PREFIX=$(brew --prefix)
+    # wget (download tool)
+    if ! sudo -u "$SUDO_USER" bash -c "brew list wget &> /dev/null"; then
+        echo "📥 Installing wget..."
+        sudo -u "$SUDO_USER" bash -c "brew install wget"
+    else
+        log_info "wget already installed"
+    fi
+    
+    # Get brew prefix
+    BREW_PREFIX=$(sudo -u "$SUDO_USER" bash -c "brew --prefix")
+    
+    # Create symlinks in admin tools directory (with sudo)
+    echo "🔗 Creating symlinks in $ADMIN_TOOLS_DIR/bin..."
     
     # Create symlinks for all tools
     ln -sf "$BREW_PREFIX/bin/python3" "$ADMIN_TOOLS_DIR/bin/python3"
@@ -102,6 +120,14 @@ install_tools_admin() {
     ln -sf "$BREW_PREFIX/bin/git" "$ADMIN_TOOLS_DIR/bin/git"
     ln -sf "$BREW_PREFIX/bin/node" "$ADMIN_TOOLS_DIR/bin/node"
     ln -sf "$BREW_PREFIX/bin/npm" "$ADMIN_TOOLS_DIR/bin/npm"
+    ln -sf "$BREW_PREFIX/bin/jq" "$ADMIN_TOOLS_DIR/bin/jq"
+    ln -sf "$BREW_PREFIX/bin/wget" "$ADMIN_TOOLS_DIR/bin/wget"
+    
+    # Also copy the actual Python3 framework
+    if [ -d "$BREW_PREFIX/opt/python@3.12/Frameworks" ]; then
+        echo "📦 Copying Python framework..."
+        cp -R "$BREW_PREFIX/opt/python@3.12/Frameworks" "$ADMIN_TOOLS_DIR/" 2>/dev/null || true
+    fi
     
     log_info "Admin tools setup complete!"
     
@@ -111,26 +137,50 @@ install_tools_admin() {
 }
 
 setup_guest_tools() {
-    echo "🚀 Setting up development tools for Guest account..."
-    
     # Check if we're running as Guest
     CURRENT_USER=$(whoami)
-    if [[ "$CURRENT_USER" != "Guest" ]]; then
-        log_warning "Not running as Guest user (current: $CURRENT_USER)"
-        echo "This script will simulate the setup process."
+    
+    # Only proceed if we're Guest or forcing
+    if [[ "$CURRENT_USER" != "Guest" ]] && [[ "$1" != "--force" ]] && [[ "$1" != "--in-terminal" ]]; then
+        # Silently exit - no need to log anything for non-Guest users
+        exit 0
     fi
     
+    # Clear screen for clean display in terminal
+    if [[ "$1" == "--in-terminal" ]]; then
+        sleep 1  # Give Terminal time to open
+    fi
+    
+    echo "🚀 Setting up development tools for Guest account..."
+    echo ""
+    echo "👤 User: $CURRENT_USER"
+    echo "📅 Date: $(date)"
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    
     # Create Guest tools directory
-    if [[ "$CURRENT_USER" == "Guest" ]] || [[ "$1" == "--force" ]]; then
+    if [[ "$CURRENT_USER" == "Guest" ]] || [[ "$1" == "--force" ]] || [[ "$1" == "--in-terminal" ]]; then
         mkdir -p "$GUEST_BIN_DIR"
         log_info "Created $GUEST_BIN_DIR"
         
         # Copy tools from admin directory
-        echo "📦 Copying tools..."
+        echo "📦 Starting tool installation..."
+        echo ""
         
         if [[ -d "$ADMIN_TOOLS_DIR/bin" ]]; then
-            cp -R "$ADMIN_TOOLS_DIR/bin/"* "$GUEST_BIN_DIR/" 2>/dev/null || true
-            log_info "Tools copied to Guest directory"
+            # Copy each tool individually with progress
+            for tool in "${TOOLS_TO_INSTALL[@]}"; do
+                echo -n "  Installing $tool... "
+                if cp -R "$ADMIN_TOOLS_DIR/bin/$tool" "$GUEST_BIN_DIR/" 2>/dev/null; then
+                    echo "✅"
+                    sleep 0.2  # Visual effect
+                else
+                    echo "⚠️  (might already exist)"
+                fi
+            done
+            echo ""
+            log_info "All tools copied to Guest directory"
         else
             log_error "Admin tools directory not found!"
             log_error "Please run: sudo $0 install-admin"
@@ -151,9 +201,39 @@ setup_guest_tools() {
         # Make tools executable
         chmod +x "$GUEST_BIN_DIR/"* 2>/dev/null || true
         
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
         log_info "Guest tools setup complete!"
-        echo -e "\n📋 Available tools:"
-        ls -la "$GUEST_BIN_DIR/"
+        echo ""
+        echo "📋 Available Development Tools:"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        
+        # Show installed tools with icons and descriptions
+        echo "  🐍 Python 3    $(python3 --version 2>/dev/null || echo 'Not found')"
+        echo "  📦 pip3        Package manager for Python"
+        echo "  📚 Git         $(git --version 2>/dev/null || echo 'Not found')"
+        echo "  📗 Node.js     $(node --version 2>/dev/null || echo 'Not found')"
+        echo "  📦 npm         $(npm --version 2>/dev/null || echo 'Not found')"
+        echo "  🔧 jq          Command-line JSON processor"
+        echo "  📥 wget        $(wget --version 2>/dev/null | head -1 || echo 'Not found')"
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        echo "✨ All tools are ready to use!"
+        echo "💡 Tools are located in: $GUEST_BIN_DIR"
+        echo "🔒 Zero-persistence: Everything will be removed on logout"
+        echo ""
+        echo "Happy coding! 🚀"
+        echo ""
+        
+        # If in terminal, keep it open
+        if [[ "$1" == "--in-terminal" ]]; then
+            echo "Press any key to start using the terminal..."
+            read -n 1 -s
+            clear
+        fi
     else
         echo "To actually copy files, run as Guest user or use --force flag"
     fi
@@ -205,7 +285,6 @@ create_launch_agent() {
     <array>
         <string>$SCRIPT_PATH</string>
         <string>setup</string>
-        <string>--force</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
