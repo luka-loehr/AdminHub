@@ -7,7 +7,7 @@
 set -euo pipefail  # Strict error handling
 
 # Script metadata
-SCRIPT_VERSION="2.0.0"
+SCRIPT_VERSION="2.0.1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source utility libraries
