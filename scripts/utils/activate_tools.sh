@@ -1,53 +1,53 @@
 #!/bin/bash
 # Copyright (c) 2025 Luka Löhr
 
-# AdminHub Tools Aktivator
-# Dieses Script aktiviert die Tools sofort in der aktuellen Shell
+# AdminHub Tools Activator
+# This script activates the tools immediately in the current shell
 
-# Prüfe ob Script per source aufgerufen wird
+# Check if script is called with source
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    echo "❌ Dieses Script muss mit source aufgerufen werden!"
+    echo "❌ This script must be called with source!"
     echo ""
-    echo "Bitte ausführen:"
+    echo "Please run:"
     echo "  source activate_tools.sh"
     echo ""
-    echo "oder:"
+    echo "or:"
     echo "  . activate_tools.sh"
     exit 1
 fi
 
-echo "🔄 Aktiviere AdminHub Tools..."
+echo "🔄 Activating AdminHub tools..."
 echo "© 2025 Luka Löhr"
 
-# Zum PATH hinzufügen
+# Add to PATH
 export PATH="/opt/admin-tools/bin:$PATH"
 
-# Prüfe ob Tools verfügbar sind
+# Check if tools are available
 if command -v python3 &> /dev/null && [ -L "/opt/admin-tools/bin/python3" ]; then
-    echo "✅ Tools aktiviert!"
+    echo "✅ Tools activated!"
     echo ""
-    echo "Verfügbare Befehle:"
+    echo "Available commands:"
     echo "  • python3 ($(python3 --version 2>&1))"
     echo "  • git ($(git --version))"
     
     if [ -L "/opt/admin-tools/bin/node" ]; then
-        echo "  • node ($(node --version 2>/dev/null || echo 'Berechtigungen prüfen'))"
-        echo "  • npm ($(npm --version 2>/dev/null || echo 'Berechtigungen prüfen'))"
+        echo "  • node ($(node --version 2>/dev/null || echo 'Check permissions'))"
+        echo "  • npm ($(npm --version 2>/dev/null || echo 'Check permissions'))"
     fi
     
     if [ -L "/opt/admin-tools/bin/jq" ]; then
-        echo "  • jq ($(jq --version 2>/dev/null || echo 'Berechtigungen prüfen'))"
+        echo "  • jq ($(jq --version 2>/dev/null || echo 'Check permissions'))"
     fi
     
     if [ -L "/opt/admin-tools/bin/wget" ]; then
-        echo "  • wget (installiert)"
+        echo "  • wget (installed)"
     fi
     
     echo ""
-    echo "🎉 Du kannst jetzt alle Tools in DIESEM Terminal nutzen!"
+    echo "🎉 You can now use all tools in THIS terminal!"
     echo ""
-    echo "Hinweis: Diese Aktivierung gilt nur für die aktuelle Terminal-Sitzung."
-    echo "Neue Terminals haben die Tools automatisch wenn install_adminhub.sh ausgeführt wurde"
+    echo "Note: This activation applies only to the current terminal session."
+    echo "New terminals will have the tools automatically if install_adminhub.sh was run"
 else
-    echo "❌ Tools nicht gefunden. Bitte ausführen: sudo ./install_adminhub.sh"
+    echo "❌ Tools not found. Please run: sudo ./install_adminhub.sh"
 fi 

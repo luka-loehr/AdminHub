@@ -1,42 +1,42 @@
 #!/bin/bash
 # Copyright (c) 2025 Luka Löhr
 
-# Setup Guest Shell Initialisierung
-# Konfiguriert einen LaunchAgent der die Guest-Shell bei jedem Login einrichtet
+# Setup Guest Shell Initialization
+# Configures a LaunchAgent that sets up the Guest shell on every login
 
 set -e
 
-echo "🔧 Richte Guest Shell Initialisierung ein..."
+echo "🔧 Setting up Guest shell initialization..."
 
-# Prüfe ob als root ausgeführt
+# Check if running as root
 if [ "$EUID" -ne 0 ]; then 
-    echo "❌ Bitte mit sudo ausführen"
+    echo "❌ Please run with sudo"
     exit 1
 fi
 
-# Das Auto-Setup Script kopieren
-echo "📋 Installiere Auto-Setup Script..."
+# Copy the auto-setup script
+echo "📋 Installing auto-setup script..."
 cp scripts/guest_setup_auto.sh /usr/local/bin/
 chmod 755 /usr/local/bin/guest_setup_auto.sh
 
-# Das Login-Setup Script kopieren
-echo "📋 Installiere Login-Setup Script..."
+# Copy the login-setup script
+echo "📋 Installing login-setup script..."
 cp scripts/setup/guest_login_setup.sh /usr/local/bin/guest_login_setup
 chmod 755 /usr/local/bin/guest_login_setup
 
-# Den LaunchAgent installieren
-echo "🤖 Installiere LaunchAgent..."
+# Install the LaunchAgent
+echo "🤖 Installing LaunchAgent..."
 cp launchagents/com.adminhub.guestsetup.plist /Library/LaunchAgents/
 chmod 644 /Library/LaunchAgents/com.adminhub.guestsetup.plist
 
-# Den LaunchAgent laden
+# Load the LaunchAgent
 launchctl load /Library/LaunchAgents/com.adminhub.guestsetup.plist 2>/dev/null || true
 
-# Hinweis: Der alte com.adminhub.guestterminal.plist wird nicht mehr benötigt
-# Terminal wird jetzt vom guest_login_setup Script geöffnet
+# Note: The old com.adminhub.guestterminal.plist is no longer needed
+# Terminal is now opened by the guest_login_setup script
 
 echo ""
-echo "✅ Guest Shell Initialisierung konfiguriert!"
+echo "✅ Guest shell initialization configured!"
 echo ""
-echo "Das Setup läuft automatisch wenn der Guest-Benutzer das Terminal öffnet."
-echo "Keine Berechtigungsdialoge erforderlich! 🎉" 
+echo "Setup runs automatically when the Guest user opens Terminal."
+echo "No permission dialogs required! 🎉" 

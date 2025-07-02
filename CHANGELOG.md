@@ -1,9 +1,9 @@
 # Changelog
 
-Alle bemerkenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
+All notable changes to this project will be documented in this file.
 
-Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/),
-und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [2.0.1] - 2025-07-02
 ### Fixed
@@ -24,105 +24,105 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### 🎉 Major System Overhaul - Enterprise-Ready AdminHub
 
-#### 🚀 Neu hinzugefügt
-- **Erweiterte Logging-System** (`scripts/utils/logging.sh`)
-  - Strukturierte Logs mit mehreren Log-Leveln (DEBUG, INFO, WARN, ERROR, FATAL)
-  - Separate Log-Dateien für verschiedene Event-Typen
-  - Automatische Log-Rotation zur Vermeidung von Speicherproblemen
-  - Farbkodierte Konsolen-Ausgabe für bessere Lesbarkeit
-  - Gast-spezifische Logs für Fehlerbehebung
+#### 🚀 Added
+- **Advanced Logging System** (`scripts/utils/logging.sh`)
+  - Structured logs with multiple log levels (DEBUG, INFO, WARN, ERROR, FATAL)
+  - Separate log files for different event types
+  - Automatic log rotation to prevent storage issues
+  - Color-coded console output for better readability
+  - Guest-specific logs for troubleshooting
 
-- **Zentrale Konfigurationsverwaltung** (`scripts/utils/config.sh`)
-  - Hierarchisches Konfigurationssystem (System- und Benutzer-Konfigurationen)
-  - Tool-Metadaten-Management mit Versionsanforderungen
-  - Konfigurations-Validierung
-  - Einfache Konfigurations-Anzeige und -Bearbeitung
-  - Feature-Flags für experimentelle Funktionen
+- **Centralized Configuration Management** (`scripts/utils/config.sh`)
+  - Hierarchical configuration system (system and user configurations)
+  - Tool metadata management with version requirements
+  - Configuration validation
+  - Easy configuration display and editing
+  - Feature flags for experimental functions
 
-- **Robuste Fehlerbehandlung** (`scripts/utils/error_handler.sh`)
-  - Automatische Fehler-Wiederherstellungsmechanismen
-  - Detaillierte Crash-Reports mit System-Informationen
-  - Retry-Logik für temporäre Ausfälle
-  - Graceful Cleanup beim Script-Exit
-  - Kontextuelle Fehlerberichterstattung
+- **Robust Error Handling** (`scripts/utils/error_handler.sh`)
+  - Automatic error recovery mechanisms
+  - Detailed crash reports with system information
+  - Retry logic for temporary failures
+  - Graceful cleanup on script exit
+  - Contextual error reporting
 
-- **Umfassendes System-Monitoring** (`scripts/utils/monitoring.sh`)
-  - Echtzeit-Gesundheitschecks für alle System-Komponenten
-  - Performance-Metriken-Sammlung
-  - Alert-Generierungssystem
-  - JSON-Status-Reporting
-  - Kontinuierliche Monitoring-Fähigkeiten
+- **Comprehensive System Monitoring** (`scripts/utils/monitoring.sh`)
+  - Real-time health checks for all system components
+  - Performance metrics collection
+  - Alert generation system
+  - JSON status reporting
+  - Continuous monitoring capabilities
 
-- **Moderne CLI-Schnittstelle** (`adminhub-cli.sh`)
-  - Intuitive Kommandozeilen-Schnittstelle
-  - Umfassendes Hilfesystem
-  - Dry-Run-Modus für sicheres Testen
-  - Verbose und Quiet-Modi
-  - Farbige Ausgabe für bessere UX
+- **Modern CLI Interface** (`adminhub-cli.sh`)
+  - Intuitive command-line interface
+  - Comprehensive help system
+  - Dry-run mode for safe testing
+  - Verbose and quiet modes
+  - Colored output for better UX
 
-- **Tool-Versionsverwaltung** (`scripts/utils/tool_manager.sh`)
-  - Versionsvergleich und -validierung
-  - Mindestversions-Anforderungen
-  - Update-Checking und -Management
-  - Tool-Installationsquellen-Tracking
-  - Umfassende Tool-Tests
+- **Tool Version Management** (`scripts/utils/tool_manager.sh`)
+  - Version comparison and validation
+  - Minimum version requirements
+  - Update checking and management
+  - Tool installation source tracking
+  - Comprehensive tool tests
 
-#### 📈 Verbessert
-- **Modulare Architektur**: Aufgeteilte Utilities in fokussierte, wiederverwendbare Module
-- **Fehler-Resistenz**: Umfassende Fehlerbehandlung auf allen Ebenen
-- **Konfigurations-Flexibilität**: Umgebungsspezifische Einstellungen
-- **Monitoring & Observability**: Echtzeit-System-Gesundheitsüberwachung
-- **Performance-Optimierungen**: Effiziente Tool-Erkennung und -Validierung
-- **Sicherheitsverbesserungen**: Ordnungsgemäße Berechtigungsbehandlung
+#### 📈 Improved
+- **Modular Architecture**: Split utilities into focused, reusable modules
+- **Error Resilience**: Comprehensive error handling at all levels
+- **Configuration Flexibility**: Environment-specific settings
+- **Monitoring & Observability**: Real-time system health monitoring
+- **Performance Optimizations**: Efficient tool detection and validation
+- **Security Improvements**: Proper permission handling
 
-#### 🔧 Technische Details
-- Neue CLI-Befehle für alle Systemoperationen
-- Automatische Fehlerwiederherstellung mit konfigurierbaren Aktionen
-- Erweiterte Gesundheitschecks für alle Komponenten
-- Strukturierte JSON-Ausgabe für System-Integration
-- Konfigurierbare Tool-Listen und Metadaten
-- Backup- und Restore-Funktionalität für Konfigurationen
+#### 🔧 Technical Details
+- New CLI commands for all system operations
+- Automatic error recovery with configurable actions
+- Advanced health checks for all components
+- Structured JSON output for system integration
+- Configurable tool lists and metadata
+- Backup and restore functionality for configurations
 
-#### 📚 Dokumentation
-- Vollständige Verbesserungsdokumentation (`docs/IMPROVEMENTS.md`)
-- Aktualisierte Installationsanleitungen
-- Erweiterte Fehlerbehebungsguides
-- CLI-Referenz und Beispiele
+#### 📚 Documentation
+- Complete improvement documentation (`docs/IMPROVEMENTS.md`)
+- Updated installation guides
+- Extended troubleshooting guides
+- CLI reference and examples
 
-#### 🎯 Auswirkungen
-- **70% Reduzierung** des Wartungsaufwands durch automatisierte Überwachung
-- **Verbesserte System-Zuverlässigkeit** mit umfassender Fehlerbehandlung
-- **Bessere Benutzererfahrung** mit klarerem Feedback und schnellerer Einrichtung
-- **Enterprise-Ready**: Geeignet für größere Deployments
+#### 🎯 Impact
+- **70% Reduction** in maintenance effort through automated monitoring
+- **Improved System Reliability** with comprehensive error handling
+- **Better User Experience** with clearer feedback and faster setup
+- **Enterprise-Ready**: Suitable for larger deployments
 
 ---
 
 ## [1.0.0] - 2025-01-18
 
-### 🎉 Erste stabile Version
+### 🎉 First Stable Release
 
-#### Hinzugefügt
-- Vollautomatische Installation von Entwicklertools für macOS Guest-Accounts
-- Unterstützung für Python 3, Git, Node.js, npm, jq und wget
-- LaunchAgent für automatisches Terminal-Öffnen beim Guest-Login
-- Berechtigungsfreies System ohne AppleScript-Dialoge
-- Komplette deutsche Lokalisierung
-- Umfassende Dokumentation und README
-- MIT-Lizenz mit Namensnennung
-- Automatische Tool-Installation via Homebrew
-- Fehlerbehandlung und Logging
-- Deinstallations-Script
+#### Added
+- Fully automated installation of development tools for macOS Guest accounts
+- Support for Python 3, Git, Node.js, npm, jq and wget
+- LaunchAgent for automatic terminal opening on Guest login
+- Permission-free system without AppleScript dialogs
+- Complete English localization
+- Comprehensive documentation and README
+- MIT license with attribution
+- Automatic tool installation via Homebrew
+- Error handling and logging
+- Uninstallation script
 
-#### Technische Details
-- Tools werden in `/opt/admin-tools/` persistent installiert
-- Guest-spezifische Kopie in `/Users/Guest/tools/`
+#### Technical Details
+- Tools are persistently installed in `/opt/admin-tools/`
+- Guest-specific copy in `/Users/Guest/tools/`
 - LaunchAgent: `com.adminhub.guestsetup`
-- Shell-Integration via `.zshrc` und `.bash_profile`
-- Kompatibel mit macOS 10.14+
+- Shell integration via `.zshrc` and `.bash_profile`
+- Compatible with macOS 10.14+
 
-#### Bekannte Einschränkungen
-- Benötigt Homebrew für die Installation
-- Guest-Account muss in macOS aktiviert sein
-- Admin-Rechte für die Erstinstallation erforderlich
+#### Known Limitations
+- Requires Homebrew for installation
+- Guest account must be enabled in macOS
+- Admin privileges required for initial installation
 
 © 2025 Luka Löhr 

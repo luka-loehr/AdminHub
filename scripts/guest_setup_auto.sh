@@ -2,31 +2,31 @@
 # Copyright (c) 2025 Luka Löhr
 
 # AdminHub Guest Auto Setup
-# Läuft automatisch wenn der Guest-Benutzer das Terminal öffnet
+# Runs automatically when the Guest user opens Terminal
 
-# Nur für Guest-Benutzer ausführen
+# Only run for Guest user
 if [[ "$(whoami)" != "Guest" ]]; then
     return 0 2>/dev/null || exit 0
 fi
 
-# Prüfe ob bereits in dieser Sitzung initialisiert
+# Check if already initialized in this session
 if [[ "$ADMINHUB_INITIALIZED" == "true" ]]; then
     return 0 2>/dev/null || exit 0
 fi
 
-# Als initialisiert markieren
+# Mark as initialized
 export ADMINHUB_INITIALIZED="true"
 
-# Prüfe ob dies ein interaktives Terminal ist
+# Check if this is an interactive terminal
 if [[ ! -t 0 ]]; then
     return 0 2>/dev/null || exit 0
 fi
 
-# Admin-Tools Verzeichnis
+# Admin tools directory
 ADMIN_TOOLS_DIR="/opt/admin-tools"
 GUEST_TOOLS_DIR="/Users/Guest/tools"
 
-# Prüfe ob Setup benötigt wird (Tools-Verzeichnis existiert nicht)
+# Check if setup is needed (tools directory doesn't exist)
 if [[ ! -d "$GUEST_TOOLS_DIR/bin" ]]; then
     clear
     echo "╔════════════════════════════════════════╗"
@@ -34,57 +34,57 @@ if [[ ! -d "$GUEST_TOOLS_DIR/bin" ]]; then
     echo "║        © 2025 Luka Löhr                ║"
     echo "╚════════════════════════════════════════╝"
     echo ""
-    echo "Entwicklertools werden eingerichtet..."
+    echo "Setting up development tools..."
     echo ""
     
-    # Prüfe ob Admin-Tools existieren
+    # Check if admin tools exist
     if [[ ! -d "$ADMIN_TOOLS_DIR/bin" ]]; then
-        echo "⚠️  Admin-Tools nicht gefunden!"
-        echo "Bitte Administrator kontaktieren."
+        echo "⚠️  Admin tools not found!"
+        echo "Please contact administrator."
         echo ""
-        echo "Der Administrator muss folgendes ausführen:"
-        echo "  cd /pfad/zum/AdminHub && sudo ./setup.sh"
+        echo "Administrator must run:"
+        echo "  cd /path/to/AdminHub && sudo ./setup.sh"
         exit 1
     fi
     
-    # Erstelle Guest Tools Verzeichnis
-    echo "📁 Erstelle Tools-Verzeichnis..."
+    # Create Guest tools directory
+    echo "📁 Creating tools directory..."
     mkdir -p "$GUEST_TOOLS_DIR/bin"
     
-    # Kopiere Tools
-    echo "📋 Kopiere Entwicklertools..."
+    # Copy tools
+    echo "📋 Copying development tools..."
     cp -R "$ADMIN_TOOLS_DIR/bin/"* "$GUEST_TOOLS_DIR/bin/" 2>/dev/null || {
-        echo "❌ Fehler beim Kopieren der Tools!"
-        echo "Bitte Administrator kontaktieren."
+        echo "❌ Error copying tools!"
+        echo "Please contact administrator."
         exit 1
     }
     
-    # Setze PATH
+    # Set PATH
     export PATH="$GUEST_TOOLS_DIR/bin:$PATH"
     
     echo ""
-    echo "✅ Setup abgeschlossen!"
+    echo "✅ Setup completed!"
     echo ""
-    echo "Verfügbare Tools:"
-    echo "  • python3 - Python Programmierung"
-    echo "  • git     - Versionskontrolle"
-    echo "  • node    - JavaScript Runtime"
-    echo "  • npm     - Node Package Manager"
-    echo "  • jq      - JSON Prozessor"
-    echo "  • wget    - Datei-Download"
+    echo "Available tools:"
+    echo "  • python3 - Python programming"
+    echo "  • git     - Version control"
+    echo "  • node    - JavaScript runtime"
+    echo "  • npm     - Node package manager"
+    echo "  • jq      - JSON processor"
+    echo "  • wget    - File download"
     echo ""
-    echo "Viel Spaß beim Programmieren! 🎉"
+    echo "Happy coding! 🎉"
     echo ""
 else
-    # Tools bereits eingerichtet, nur PATH setzen
+    # Tools already set up, just set PATH
     export PATH="$GUEST_TOOLS_DIR/bin:$PATH"
     
-    # Willkommensnachricht nur einmal pro Sitzung zeigen
+    # Show welcome message only once per session
     if [[ "$ADMINHUB_WELCOME_SHOWN" != "true" ]]; then
         export ADMINHUB_WELCOME_SHOWN="true"
         echo ""
-        echo "✨ AdminHub Tools sind bereit!"
-        echo "Verfügbar: python3, git, node, npm, jq, wget"
+        echo "✨ AdminHub tools are ready!"
+        echo "Available: python3, git, node, npm, jq, wget"
         echo "© 2025 Luka Löhr"
         echo ""
     fi

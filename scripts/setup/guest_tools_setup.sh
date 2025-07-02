@@ -2,7 +2,7 @@
 # Copyright (c) 2025 Luka Löhr
 
 # AdminHub Guest Tools Manager
-# Dieses Script verwaltet die Entwicklertools für den Guest-Account
+# This script manages the development tools for the Guest account
 
 ADMIN_TOOLS_DIR="/opt/admin-tools"
 GUEST_TOOLS_DIR="/Users/Guest/tools"
@@ -32,44 +32,44 @@ fi
 case $COMMAND in
     install-admin)
         print_header
-        echo "📦 Installiere Entwicklertools im Admin-Bereich..."
+        echo "📦 Installing development tools in admin area..."
         
-        # Prüfe ob als root ausgeführt
+        # Check if running as root
         if [ "$EUID" -ne 0 ]; then 
-            echo -e "${RED}❌ Bitte mit sudo ausführen: sudo $0 install-admin${NC}"
+            echo -e "${RED}❌ Please run with sudo: sudo $0 install-admin${NC}"
             exit 1
         fi
         
-        # Prüfe ob Homebrew installiert ist
+        # Check if Homebrew is installed
         if ! command -v brew &> /dev/null; then
-            echo -e "${RED}❌ Homebrew nicht gefunden. Bitte zuerst Homebrew installieren.${NC}"
-            echo "Besuche: https://brew.sh"
+            echo -e "${RED}❌ Homebrew not found. Please install Homebrew first.${NC}"
+            echo "Visit: https://brew.sh"
             exit 1
         fi
         
-        # Admin-Tools Verzeichnis erstellen
-        echo "📁 Erstelle $ADMIN_TOOLS_DIR Verzeichnis..."
+        # Create admin tools directory
+        echo "📁 Creating $ADMIN_TOOLS_DIR directory..."
         mkdir -p "$ADMIN_TOOLS_DIR/bin"
         
-        # Prüfe installierte Tools (Homebrew darf nicht als root laufen!)
+        # Check installed tools (Homebrew must not run as root!)
         echo ""
-        echo "🔧 Prüfe installierte Tools..."
+        echo "🔧 Checking installed tools..."
         
-        # Funktion um zu prüfen ob Tool installiert ist
+        # Function to check if tool is installed
         check_tool() {
             local tool=$1
             local display_name=$2
             
             if command -v $tool &> /dev/null; then
-                echo "  ✅ $display_name bereits installiert"
+                echo "  ✅ $display_name already installed"
                 return 0
             else
-                echo "  ⚠️  $display_name nicht gefunden"
+                echo "  ⚠️  $display_name not found"
                 return 1
             fi
         }
         
-        # Prüfe alle benötigten Tools
+        # Check all required tools
         MISSING_TOOLS=false
         
         check_tool "python3" "Python3" || MISSING_TOOLS=true
@@ -79,111 +79,110 @@ case $COMMAND in
         check_tool "jq" "jq" || MISSING_TOOLS=true
         check_tool "wget" "wget" || MISSING_TOOLS=true
         
-        # Wenn Tools fehlen, frage ob sie installiert werden sollen
+        # If tools are missing, ask if they should be installed
         if [ "$MISSING_TOOLS" = true ]; then
             echo ""
             echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-            echo -e "${YELLOW}⚠️  ACHTUNG: Einige Tools fehlen!${NC}"
+            echo -e "${YELLOW}⚠️  WARNING: Some tools are missing!${NC}"
             echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
             echo ""
-            echo "Damit wir den Schülern die gewünschten Tools auf dem"
-            echo "Guest-Account bereitstellen können, müssen diese"
-            echo "installiert werden."
+            echo "To provide students with the desired tools on the"
+            echo "Guest account, these tools must be installed."
             echo ""
-            echo -e "${GREEN}Soll ich die fehlenden Tools jetzt installieren?${NC}"
+            echo -e "${GREEN}Should I install the missing tools now?${NC}"
             echo ""
-            echo -n "Antwort (j/n): "
+            echo -n "Answer (y/n): "
             read -r response
             
-            if [[ ! "$response" =~ ^[jJ]$ ]]; then
+            if [[ ! "$response" =~ ^[yY]$ ]]; then
                 echo ""
-                echo -e "${RED}❌ Setup abgebrochen.${NC}"
-                echo "Die Tools müssen installiert sein für AdminHub."
+                echo -e "${RED}❌ Setup cancelled.${NC}"
+                echo "The tools must be installed for AdminHub."
                 exit 1
             fi
             
             echo ""
-            echo "🚀 Installiere fehlende Tools..."
+            echo "🚀 Installing missing tools..."
             echo ""
             
-            # Ermittle den echten Benutzer (nicht root)
+            # Determine the real user (not root)
             if [ -n "$SUDO_USER" ]; then
                 ORIGINAL_USER="$SUDO_USER"
             else
                 ORIGINAL_USER=$(who am i | awk '{print $1}')
             fi
             
-            # Falls immer noch root, versuche es anders
+            # If still root, try a different approach
             if [ "$ORIGINAL_USER" = "root" ] || [ -z "$ORIGINAL_USER" ]; then
-                # Hole den Benutzer aus dem Home-Verzeichnis des Terminals
+                # Get user from the terminal's home directory
                 ORIGINAL_USER=$(stat -f "%Su" /dev/console)
             fi
             
-            echo "🔄 Verwende Benutzer '$ORIGINAL_USER' für Installation..."
+            echo "🔄 Using user '$ORIGINAL_USER' for installation..."
             echo ""
             
-            # Erstelle temporäres Script für Installation
+            # Create temporary script for installation
             INSTALL_SCRIPT="/tmp/adminhub_install_tools.sh"
             cat > "$INSTALL_SCRIPT" << 'INSTALLEOF'
 #!/bin/bash
-echo "📦 Installiere Tools via Homebrew..."
+echo "📦 Installing tools via Homebrew..."
 
-# Array mit zu installierenden Tools
+# Array of tools to install
 TOOLS_TO_INSTALL=""
 
-# Prüfe welche Tools fehlen und füge sie zur Liste hinzu
+# Check which tools are missing and add them to the list
 command -v git &> /dev/null || TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL git"
 command -v node &> /dev/null || TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL node"
 command -v jq &> /dev/null || TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL jq"
 command -v wget &> /dev/null || TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL wget"
 
 if [ -n "$TOOLS_TO_INSTALL" ]; then
-    echo "Installiere: $TOOLS_TO_INSTALL"
+    echo "Installing: $TOOLS_TO_INSTALL"
     brew install $TOOLS_TO_INSTALL
     echo ""
-    echo "✅ Installation abgeschlossen!"
+    echo "✅ Installation completed!"
 else
-    echo "✅ Alle Tools bereits installiert!"
-        fi
+    echo "✅ All tools already installed!"
+fi
 INSTALLEOF
             
             chmod +x "$INSTALL_SCRIPT"
             
-            # Führe Installation als normaler Benutzer aus
+            # Run installation as normal user
             if [ "$ORIGINAL_USER" = "root" ] || [ -z "$ORIGINAL_USER" ]; then
-                echo -e "${RED}❌ Konnte Benutzernamen nicht ermitteln.${NC}"
-                echo "Bitte führe die Installation manuell aus:"
+                echo -e "${RED}❌ Could not determine username.${NC}"
+                echo "Please run the installation manually:"
                 echo "  brew install node wget"
                 MISSING_TOOLS=false
-        else
-                echo "Führe Installation aus..."
+            else
+                echo "Running installation..."
                 su - "$ORIGINAL_USER" -c "$INSTALL_SCRIPT"
             fi
             
-            # Aufräumen
+            # Cleanup
             rm -f "$INSTALL_SCRIPT"
             
             echo ""
-            echo -e "${GREEN}✅ Tools wurden installiert!${NC}"
+            echo -e "${GREEN}✅ Tools have been installed!${NC}"
             echo ""
-            echo "Fahre mit Setup fort..."
+            echo "Continuing with setup..."
             sleep 2
         fi
         
-        # Symlinks im Admin-Tools Verzeichnis erstellen
+        # Create symlinks in admin tools directory
         echo ""
-        echo "🔗 Erstelle Symlinks in $ADMIN_TOOLS_DIR/bin..."
+        echo "🔗 Creating symlinks in $ADMIN_TOOLS_DIR/bin..."
         
-        # Funktion um Symlinks sicher zu erstellen
+        # Function to safely create symlinks
         create_symlink() {
             local source=$1
             local target=$2
             
             if [ -e "$source" ]; then
                 ln -sf "$source" "$target"
-                echo "  ✅ Verlinkt: $(basename $target)"
+                echo "  ✅ Linked: $(basename $target)"
             else
-                echo "  ⚠️  Quelle nicht gefunden: $source"
+                echo "  ⚠️  Source not found: $source"
             fi
         }
         
@@ -212,33 +211,33 @@ INSTALLEOF
             fi
         done
         
-        # Berechtigungen setzen
+        # Set permissions
         echo ""
-        echo "🔐 Setze Berechtigungen..."
+        echo "🔐 Setting permissions..."
         chmod -R 755 "$ADMIN_TOOLS_DIR"
         
-        # Setup-Scripts installieren
+        # Install setup scripts
         echo ""
-        echo "📝 Installiere Terminal Setup-Scripts..."
+        echo "📝 Installing terminal setup scripts..."
         
-        # Kopiere die benötigten Scripts falls vorhanden
+        # Copy required scripts if available
         if [ -f "simple_guest_setup.sh" ]; then
             cp simple_guest_setup.sh /usr/local/bin/
             chmod 755 /usr/local/bin/simple_guest_setup.sh
-            echo "  ✅ simple_guest_setup.sh installiert"
+            echo "  ✅ simple_guest_setup.sh installed"
         fi
         
-        # Terminal Opener kopieren
+        # Copy terminal opener
         if [ -f "open_guest_terminal.sh" ]; then
             cp open_guest_terminal.sh /usr/local/bin/open_guest_terminal
             chmod 755 /usr/local/bin/open_guest_terminal
-            echo "  ✅ open_guest_terminal installiert"
+            echo "  ✅ open_guest_terminal installed"
         fi
         
         echo ""
-        echo -e "${GREEN}✅ Admin-Tools Installation abgeschlossen!${NC}"
+        echo -e "${GREEN}✅ Admin tools installation completed!${NC}"
         echo ""
-        echo "Tools installiert in: $ADMIN_TOOLS_DIR/bin/"
+        echo "Tools installed in: $ADMIN_TOOLS_DIR/bin/"
         ;;
         
     setup)
