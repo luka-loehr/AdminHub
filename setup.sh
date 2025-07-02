@@ -19,7 +19,7 @@ fi
 
 # Schritt 1: Hauptinstallation
 echo "📦 Schritt 1/2: Installiere Entwicklertools..."
-./scripts/install/install_adminhub.sh
+./scripts/install_adminhub.sh
 
 # Schritt 2: Guest-Setup aktivieren
 echo ""

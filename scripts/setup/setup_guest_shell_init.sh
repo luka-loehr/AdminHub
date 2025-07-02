@@ -16,7 +16,7 @@ fi
 
 # Das Auto-Setup Script kopieren
 echo "📋 Installiere Auto-Setup Script..."
-cp scripts/runtime/guest_setup_auto.sh /usr/local/bin/
+cp scripts/guest_setup_auto.sh /usr/local/bin/
 chmod 755 /usr/local/bin/guest_setup_auto.sh
 
 # Das Login-Setup Script kopieren
