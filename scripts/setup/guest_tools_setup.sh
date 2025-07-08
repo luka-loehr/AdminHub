@@ -31,8 +31,7 @@ fi
 
 case $COMMAND in
     install-admin)
-        print_header
-        echo "📦 Installing development tools in admin area..."
+        echo "📦 Installing development tools..."
         
         # Check if running as root
         if [ "$EUID" -ne 0 ]; then 
@@ -48,12 +47,9 @@ case $COMMAND in
         fi
         
         # Create admin tools directory
-        echo "📁 Creating $ADMIN_TOOLS_DIR directory..."
         mkdir -p "$ADMIN_TOOLS_DIR/bin"
         
         # Check installed tools (Homebrew must not run as root!)
-        echo ""
-        echo "🔧 Checking installed tools..."
         
         # Function to check if tool is installed
         check_tool() {
@@ -61,10 +57,8 @@ case $COMMAND in
             local display_name=$2
             
             if command -v $tool &> /dev/null; then
-                echo "  ✅ $display_name already installed"
                 return 0
             else
-                echo "  ⚠️  $display_name not found"
                 return 1
             fi
         }
@@ -82,16 +76,8 @@ case $COMMAND in
         # If tools are missing, ask if they should be installed
         if [ "$MISSING_TOOLS" = true ]; then
             echo ""
-            echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-            echo -e "${YELLOW}⚠️  WARNING: Some tools are missing!${NC}"
-            echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-            echo ""
-            echo "To provide students with the desired tools on the"
-            echo "Guest account, these tools must be installed."
-            echo ""
-            echo -e "${GREEN}Should I install the missing tools now?${NC}"
-            echo ""
-            echo -n "Answer (y/n): "
+            echo -e "${YELLOW}⚠️  Some tools are missing and need to be installed.${NC}"
+            echo -n "Install now? (y/n): "
             read -r response
             
             if [[ ! "$response" =~ ^[yY]$ ]]; then
@@ -101,9 +87,6 @@ case $COMMAND in
                 exit 1
             fi
             
-            echo ""
-            echo "🚀 Installing missing tools..."
-            echo ""
             
             # Determine the real user (not root)
             if [ -n "$SUDO_USER" ]; then
@@ -118,8 +101,6 @@ case $COMMAND in
                 ORIGINAL_USER=$(stat -f "%Su" /dev/console)
             fi
             
-            echo "🔄 Using user '$ORIGINAL_USER' for installation..."
-            echo ""
             
             # Create temporary script for installation
             INSTALL_SCRIPT="/tmp/adminhub_install_tools.sh"
@@ -160,16 +141,9 @@ INSTALLEOF
             # Cleanup
             rm -f "$INSTALL_SCRIPT"
             
-            echo ""
-            echo -e "${GREEN}✅ Tools have been installed!${NC}"
-            echo ""
-            echo "Continuing with setup..."
-            sleep 2
         fi
         
         # Create symlinks in admin tools directory
-        echo ""
-        echo "🔗 Creating symlinks in $ADMIN_TOOLS_DIR/bin..."
         
         # Function to safely create symlinks
         create_symlink() {
@@ -177,10 +151,7 @@ INSTALLEOF
             local target=$2
             
             if [ -e "$source" ]; then
-                ln -sf "$source" "$target"
-                echo "  ✅ Linked: $(basename $target)"
-            else
-                echo "  ⚠️  Source not found: $source"
+                ln -sf "$source" "$target" 2>/dev/null
             fi
         }
         
@@ -218,32 +189,23 @@ INSTALLEOF
         fi
         
         # Set permissions
-        echo ""
-        echo "🔐 Setting permissions..."
         chmod -R 755 "$ADMIN_TOOLS_DIR"
         
         # Install setup scripts
-        echo ""
-        echo "📝 Installing terminal setup scripts..."
         
         # Copy required scripts if available
         if [ -f "simple_guest_setup.sh" ]; then
             cp simple_guest_setup.sh /usr/local/bin/
             chmod 755 /usr/local/bin/simple_guest_setup.sh
-            echo "  ✅ simple_guest_setup.sh installed"
         fi
         
         # Copy terminal opener
         if [ -f "open_guest_terminal.sh" ]; then
             cp open_guest_terminal.sh /usr/local/bin/open_guest_terminal
             chmod 755 /usr/local/bin/open_guest_terminal
-            echo "  ✅ open_guest_terminal installed"
         fi
         
-        echo ""
-        echo -e "${GREEN}✅ Admin tools installation completed!${NC}"
-        echo ""
-        echo "Tools installed in: $ADMIN_TOOLS_DIR/bin/"
+        echo -e "${GREEN}✅ Tools installed successfully!${NC}"
         ;;
         
     setup)

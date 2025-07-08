@@ -3,7 +3,6 @@
 
 # Fix Homebrew permissions so Guest can use the tools
 
-echo "🔧 Fixing Homebrew permissions for Guest access..."
 
 # Make Homebrew directories readable for all
 sudo chmod -R o+rX /opt/homebrew 2>/dev/null || true
@@ -33,9 +32,4 @@ if [ -f "/Library/LaunchAgents/com.adminhub.guestsetup.plist" ]; then
     sudo chown root:wheel /Library/LaunchAgents/com.adminhub.guestsetup.plist
 fi
 
-echo "✅ Permissions fixed!"
-echo ""
-echo "The following tools should now be accessible for Guest:"
-echo "  - Homebrew (brew command)"
-echo "  - Python & Python 3 (with pip/pip3)"
-echo "  - Git (from /opt/homebrew/bin/)" 
+ 
