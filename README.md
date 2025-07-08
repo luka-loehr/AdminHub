@@ -88,11 +88,22 @@ Check the system status:
 ```
 ./adminhub-cli.sh status
 ```
+This shows if everything is working correctly.
 
 ### "Something seems broken"
 View recent errors:
 ```
 ./adminhub-cli.sh logs error
+```
+
+### "Status shows warnings when using sudo"
+This is normal! When you run:
+```
+sudo ./adminhub-cli.sh permissions check
+```
+You might see "DEGRADED" for some components. This is a false alarm - the system works fine. Always check without sudo for accurate status:
+```
+./adminhub-cli.sh status
 ```
 
 ### "I need to uninstall it"
