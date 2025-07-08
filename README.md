@@ -44,7 +44,7 @@ AdminHub solves this by:
 2. **Run the installer**
    ```
    Type:
-   sudo ./adminhub-cli.sh install
+   sudo ./scripts/adminhub-cli.sh install
    
    (You'll need to enter your admin password)
    ```
@@ -61,7 +61,7 @@ That's it! The installation will take about 5 minutes.
 
 After installation, run this simple test:
 ```
-./adminhub-cli.sh tools test
+./scripts/adminhub-cli.sh tools test
 ```
 
 You should see green checkmarks (✓) for everything.
@@ -80,35 +80,35 @@ Try these commands:
 ### "Terminal doesn't open for Guest users"
 Run this command as admin:
 ```
-./adminhub-cli.sh repair
+./scripts/adminhub-cli.sh repair
 ```
 
 ### "I want to see what's happening"
 Check the system status:
 ```
-./adminhub-cli.sh status
+./scripts/adminhub-cli.sh status
 ```
 This shows if everything is working correctly.
 
 ### "Something seems broken"
 View recent errors:
 ```
-./adminhub-cli.sh logs error
+./scripts/adminhub-cli.sh logs error
 ```
 
 ### "Status shows warnings when using sudo"
 This is normal! When you run:
 ```
-sudo ./adminhub-cli.sh permissions check
+sudo ./scripts/adminhub-cli.sh permissions check
 ```
 You might see "DEGRADED" for some components. This is a false alarm - the system works fine. Always check without sudo for accurate status:
 ```
-./adminhub-cli.sh status
+./scripts/adminhub-cli.sh status
 ```
 
 ### "I need to uninstall it"
 ```
-sudo ./adminhub-cli.sh uninstall
+sudo ./scripts/adminhub-cli.sh uninstall
 ```
 
 ## Advanced Features (for IT admins) 🔧
@@ -121,7 +121,7 @@ AdminHub has many advanced features that IT administrators might find useful:
 
 To see all available commands:
 ```
-./adminhub-cli.sh --help
+./scripts/adminhub-cli.sh --help
 ```
 
 ## Common Questions ❓
@@ -143,9 +143,9 @@ A: They can't! Guest accounts reset on logout, and the tools are protected.
 
 ## Need Help? 🆘
 
-- Check if it's working: `./adminhub-cli.sh tools test`
-- See system status: `./adminhub-cli.sh status`
-- Quick fix: `./adminhub-cli.sh repair`
+- Check if it's working: `./scripts/adminhub-cli.sh tools test`
+- See system status: `./scripts/adminhub-cli.sh status`
+- Quick fix: `./scripts/adminhub-cli.sh repair`
 
 ## About 📚
 
