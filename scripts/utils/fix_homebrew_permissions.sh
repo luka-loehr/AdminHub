@@ -6,16 +6,23 @@
 echo "🔧 Fixing Homebrew permissions for Guest access..."
 
 # Make Homebrew directories readable for all
-sudo chmod -R o+rX /opt/homebrew/bin 2>/dev/null || true
-sudo chmod -R o+rX /opt/homebrew/lib 2>/dev/null || true
-sudo chmod -R o+rX /opt/homebrew/share 2>/dev/null || true
+sudo chmod -R o+rX /opt/homebrew 2>/dev/null || true
+sudo chmod -R o+rX /usr/local/Homebrew 2>/dev/null || true
 
 # Fix permissions for installed tools (only if they exist)
-for tool in node wget git; do
+for tool in git python@3.12 python@3.13; do
     if [ -d "/opt/homebrew/Cellar/$tool" ]; then
         sudo chmod -R o+rX "/opt/homebrew/Cellar/$tool"
     fi
 done
+
+# Fix permissions for brew command itself
+if [ -f "/opt/homebrew/bin/brew" ]; then
+    sudo chmod o+rx "/opt/homebrew/bin/brew"
+fi
+if [ -f "/usr/local/bin/brew" ]; then
+    sudo chmod o+rx "/usr/local/bin/brew"
+fi
 
 # Fix permissions for admin tools directory
 sudo chmod -R o+rX /opt/admin-tools 2>/dev/null || true
@@ -29,8 +36,6 @@ fi
 echo "✅ Permissions fixed!"
 echo ""
 echo "The following tools should now be accessible for Guest:"
-echo "  - Python 3 (from system)"
-echo "  - Git (from /opt/homebrew/bin/)"
-echo "  - Node.js & npm (from /opt/homebrew/bin/)"
-echo "  - wget (from /opt/homebrew/bin/)"
-echo "  - jq (from system)" 
+echo "  - Homebrew (brew command)"
+echo "  - Python & Python 3 (with pip/pip3)"
+echo "  - Git (from /opt/homebrew/bin/)" 

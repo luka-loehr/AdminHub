@@ -72,12 +72,12 @@ case $COMMAND in
         # Check all required tools
         MISSING_TOOLS=false
         
+        check_tool "brew" "Homebrew" || MISSING_TOOLS=true
         check_tool "python3" "Python3" || MISSING_TOOLS=true
+        check_tool "python" "Python" || MISSING_TOOLS=true
+        check_tool "pip3" "pip3" || MISSING_TOOLS=true
+        check_tool "pip" "pip" || MISSING_TOOLS=true
         check_tool "git" "Git" || MISSING_TOOLS=true
-        check_tool "node" "Node.js" || MISSING_TOOLS=true
-        check_tool "npm" "npm" || MISSING_TOOLS=true
-        check_tool "jq" "jq" || MISSING_TOOLS=true
-        check_tool "wget" "wget" || MISSING_TOOLS=true
         
         # If tools are missing, ask if they should be installed
         if [ "$MISSING_TOOLS" = true ]; then
@@ -132,9 +132,7 @@ TOOLS_TO_INSTALL=""
 
 # Check which tools are missing and add them to the list
 command -v git &> /dev/null || TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL git"
-command -v node &> /dev/null || TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL node"
-command -v jq &> /dev/null || TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL jq"
-command -v wget &> /dev/null || TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL wget"
+command -v python &> /dev/null || TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL python"
 
 if [ -n "$TOOLS_TO_INSTALL" ]; then
     echo "Installing: $TOOLS_TO_INSTALL"
@@ -152,7 +150,7 @@ INSTALLEOF
             if [ "$ORIGINAL_USER" = "root" ] || [ -z "$ORIGINAL_USER" ]; then
                 echo -e "${RED}❌ Could not determine username.${NC}"
                 echo "Please run the installation manually:"
-                echo "  brew install node wget"
+                echo "  brew install git python"
                 MISSING_TOOLS=false
             else
                 echo "Running installation..."
@@ -186,6 +184,11 @@ INSTALLEOF
             fi
         }
         
+        # Create symlink for brew
+        if command -v brew &> /dev/null; then
+            create_symlink "$(which brew)" "$ADMIN_TOOLS_DIR/bin/brew"
+        fi
+        
         # Find the correct paths and create symlinks
         if command -v python3 &> /dev/null; then
             create_symlink "$(which python3)" "$ADMIN_TOOLS_DIR/bin/python3"
@@ -195,21 +198,17 @@ INSTALLEOF
             fi
         fi
         
+        # Link python and pip (not just python3)
+        if command -v python &> /dev/null; then
+            create_symlink "$(which python)" "$ADMIN_TOOLS_DIR/bin/python"
+            if command -v pip &> /dev/null; then
+                create_symlink "$(which pip)" "$ADMIN_TOOLS_DIR/bin/pip"
+            fi
+        fi
+        
         if command -v git &> /dev/null; then
             create_symlink "$(which git)" "$ADMIN_TOOLS_DIR/bin/git"
         fi
-        
-        # Node tools might be in different locations
-        for tool in node npm npx jq wget; do
-            # First check homebrew location
-            if [ -e "/opt/homebrew/bin/$tool" ]; then
-                create_symlink "/opt/homebrew/bin/$tool" "$ADMIN_TOOLS_DIR/bin/$tool"
-            elif [ -e "/usr/local/bin/$tool" ]; then
-                create_symlink "/usr/local/bin/$tool" "$ADMIN_TOOLS_DIR/bin/$tool"
-            elif command -v $tool &> /dev/null; then
-                create_symlink "$(which $tool)" "$ADMIN_TOOLS_DIR/bin/$tool"
-            fi
-        done
         
         # Set permissions
         echo ""
@@ -384,12 +383,12 @@ EOF
             fi
         }
         
+        test_tool "brew" "--version"
         test_tool "python3" "--version"
+        test_tool "python" "--version"
+        test_tool "pip3" "--version"
+        test_tool "pip" "--version"
         test_tool "git" "--version"
-        test_tool "node" "--version"
-        test_tool "npm" "--version"
-        test_tool "jq" "--version"
-        test_tool "wget" "--version"
         
         echo ""
         echo "LaunchAgent status:"
