@@ -258,9 +258,11 @@ cmd_uninstall() {
     
     print_info "Removing AdminHub..."
     if [[ "$DRY_RUN" == "false" ]]; then
-        bash "$SCRIPT_DIR/uninstall.sh"
+        ADMINHUB_CLI_UNINSTALL=true bash "$SCRIPT_DIR/uninstall.sh"
     fi
     print_success "AdminHub uninstallation completed"
+    echo ""
+    echo "Note: Homebrew and packages (git, python) were NOT removed."
 }
 
 # Status commands

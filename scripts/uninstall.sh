@@ -6,29 +6,30 @@
 
 set -e
 
-echo "🗑️  AdminHub Uninstallation"
-echo ""
-
 # Check if running with sudo
 if [ "$EUID" -ne 0 ]; then 
     echo "❌ Please run with sudo: sudo ./uninstall.sh"
     exit 1
 fi
 
-echo "This will remove:"
-echo "  • LaunchAgents"
-echo "  • Guest setup scripts"
-echo "  • Admin tools directory"
-echo "  • Logs and temporary files"
-echo ""
-echo -n "Continue? (y/N): "
-read -r response
-if [[ ! "$response" =~ ^[yY]$ ]]; then
-    echo "Cancelled."
-    exit 0
+# Only show prompt if not called from CLI
+if [ "$ADMINHUB_CLI_UNINSTALL" != "true" ]; then
+    echo "🗑️  AdminHub Uninstallation"
+    echo ""
+    echo "This will remove:"
+    echo "  • LaunchAgents"
+    echo "  • Guest setup scripts"
+    echo "  • Admin tools directory"
+    echo "  • Logs and temporary files"
+    echo ""
+    echo -n "Continue? (y/N): "
+    read -r response
+    if [[ ! "$response" =~ ^[yY]$ ]]; then
+        echo "Cancelled."
+        exit 0
+    fi
+    echo ""
 fi
-
-echo ""
 
 # Remove LaunchAgents
 launchctl unload /Library/LaunchAgents/com.adminhub.guestsetup.plist 2>/dev/null || true
@@ -52,6 +53,9 @@ rm -f /tmp/adminhub-*.log
 rm -f /tmp/adminhub-*.err
 rm -rf /var/log/adminhub
 
-echo "✅ Uninstallation completed!"
-echo ""
-echo "Note: Homebrew and packages (git, python) were NOT removed."
+# Only show completion message if not called from CLI
+if [ "$ADMINHUB_CLI_UNINSTALL" != "true" ]; then
+    echo "✅ Uninstallation completed!"
+    echo ""
+    echo "Note: Homebrew and packages (git, python) were NOT removed."
+fi
