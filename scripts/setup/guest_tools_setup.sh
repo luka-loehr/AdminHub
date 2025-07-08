@@ -356,71 +356,6 @@ EOF
         echo "Terminal will now open automatically when Guest logs in."
         ;;
         
-    test)
-        print_header
-        echo "🧪 Testing current setup..."
-        echo ""
-        
-        # Test admin tools
-        echo "Admin tools directory:"
-        if [ -d "$ADMIN_TOOLS_DIR/bin" ]; then
-            echo "  ✅ $ADMIN_TOOLS_DIR/bin exists"
-            echo "  Contents: $(ls -1 $ADMIN_TOOLS_DIR/bin 2>/dev/null | tr '\n' ' ')"
-        else
-            echo "  ❌ $ADMIN_TOOLS_DIR/bin not found"
-        fi
-        
-        echo ""
-        echo "Testing tool availability:"
-        
-        # Function to test tool
-        test_tool() {
-            local tool=$1
-            local version_flag=$2
-            
-            if [ -e "$ADMIN_TOOLS_DIR/bin/$tool" ]; then
-                echo -n "  ✅ $tool: "
-                if [ -x "$ADMIN_TOOLS_DIR/bin/$tool" ]; then
-                    $ADMIN_TOOLS_DIR/bin/$tool $version_flag 2>&1 | head -1 || echo "installed"
-                else
-                    echo "not executable"
-                fi
-            else
-                echo "  ❌ $tool: not found in admin tools"
-            fi
-        }
-        
-        test_tool "brew" "--version"
-        test_tool "python3" "--version"
-        test_tool "python" "--version"
-        test_tool "pip3" "--version"
-        test_tool "pip" "--version"
-        test_tool "git" "--version"
-        
-        echo ""
-        echo "LaunchAgent status:"
-        if [ -f "$TERMINAL_PLIST" ]; then
-            echo "  ✅ Terminal LaunchAgent installed"
-            if launchctl list | grep -q "com.adminhub.guestterminal"; then
-                echo "  ✅ Terminal LaunchAgent loaded"
-            else
-                echo "  ⚠️  Terminal LaunchAgent not loaded"
-            fi
-        else
-            echo "  ❌ Terminal LaunchAgent not installed"
-        fi
-        
-        echo ""
-        echo "Current user: $USER"
-        if [ "$USER" = "Guest" ]; then
-            echo "PATH includes admin tools: "
-            if echo $PATH | grep -q "$ADMIN_TOOLS_DIR/bin"; then
-                echo "  ✅ Yes"
-            else
-                echo "  ❌ No - run 'source ~/.zprofile' or restart Terminal"
-            fi
-        fi
-        ;;
         
     *)
         print_header
@@ -431,11 +366,9 @@ EOF
         echo "  setup         - Copy tools to Guest account"
         echo "  cleanup       - Remove tools from Guest account"
         echo "  create-agent  - Create LaunchAgent for auto-setup (requires sudo)"
-        echo "  test          - Test current setup"
         echo ""
         echo "Quick start:"
         echo "  1. sudo $0 install-admin"
         echo "  2. sudo $0 create-agent"
-        echo "  3. $0 test"
         ;;
 esac 

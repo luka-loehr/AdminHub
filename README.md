@@ -1,155 +1,98 @@
-# AdminHub - Coding Tools for School Computers 🎓
+# AdminHub - Developer Tools for Guest Accounts 🎓
 
-**Make coding tools work on Guest accounts - it's that simple!**
+**Instantly provide coding tools to Guest users on macOS**
 
 ## What is AdminHub? 🤔
 
-Imagine you're a teacher and your students need to use Python, Git, or other coding tools on school computers. But there's a problem: they have to log in as "Guest" users, and Guest accounts delete everything when they log out!
+AdminHub lets teachers and IT admins install developer tools once, making them automatically available to all Guest users - no setup needed by students!
 
-AdminHub solves this by:
-- Installing coding tools once (by the admin)
-- Making them automatically available to every Guest user
-- No setup needed by students - it just works!
+## Quick Start 🚀
 
-## For Teachers 👩‍🏫👨‍🏫
+### Prerequisites
+- macOS with admin access
+- [Homebrew](https://brew.sh) installed
+- Guest account enabled
 
-### What your students get:
-- **Homebrew** - Package manager for installing tools
-- **Python & Python3** - For programming lessons (with pip/pip3)
-- **Git** - For saving and sharing code
+### Installation (3 minutes)
 
-### How it helps you:
-- ✅ No more wasted class time installing software
-- ✅ Students can start coding immediately
-- ✅ Works perfectly with Guest accounts
-- ✅ No technical knowledge needed from students
-
-## Super Simple Installation 🚀
-
-### What you need:
-1. A Mac with administrator access
-2. [Homebrew](https://brew.sh) installed (ask IT if unsure)
-3. Guest account enabled on the Mac
-
-### Install in 3 steps:
-
-1. **Download AdminHub**
-   ```
-   Open Terminal and type:
+1. **Clone the repository**
+   ```bash
    git clone https://github.com/luka-loehr/AdminHub.git
    cd AdminHub
    ```
 
-2. **Run the installer**
-   ```
-   Type:
+2. **Run installation**
+   ```bash
    sudo ./scripts/adminhub-cli.sh install
+   ```
+
+3. **Check status**
+   ```bash
+   sudo ./scripts/adminhub-cli.sh status
+   ```
    
-   (You'll need to enter your admin password)
-   ```
+   All components should show "✅ HEALTHY"
 
-3. **Say "yes" when asked**
-   ```
-   When it asks "Should I install the missing tools now?"
-   Type: y
-   ```
+That's it! Guest users now have instant access to developer tools.
 
-That's it! The installation will take about 5 minutes.
+## Available Tools 🛠️
 
-## How to Check It's Working ✅
+- **Homebrew** - Package manager
+- **Python 3 & Python** - Programming language (with pip/pip3)
+- **Git** - Version control
 
-After installation, run this simple test:
-```
-./scripts/adminhub-cli.sh tools test
-```
+## For Students 👨‍🎓
 
-You should see green checkmarks (✓) for everything.
+Just log in as Guest - Terminal opens automatically with all tools ready!
 
-## For Students 👨‍🎓👩‍🎓
-
-Just log in as Guest - Terminal will open automatically with all tools ready!
-
-Try these commands:
-- `python3` - Start Python 3
-- `python` - Start Python
-- `git --version` - Check Git
-- `brew --version` - Check Homebrew
-
-## Troubleshooting for Teachers 🛠️
-
-### "Terminal doesn't open for Guest users"
-Run this command as admin:
-```
-./scripts/adminhub-cli.sh repair
+```bash
+python3              # Start Python 3
+python               # Start Python
+git --version        # Check Git
+brew --version       # Check Homebrew
 ```
 
-### "I want to see what's happening"
-Check the system status (requires sudo for full diagnostics):
-```
+## Common Commands 📋
+
+```bash
+# Check system health (requires sudo)
 sudo ./scripts/adminhub-cli.sh status
-```
-This shows if everything is working correctly, including LaunchAgent verification.
 
-### "Something seems broken"
-View recent errors:
-```
+# Fix permission issues
+sudo ./scripts/adminhub-cli.sh repair
+
+# View error logs
 ./scripts/adminhub-cli.sh logs error
-```
 
-### Important: Running status command
-The status command should be run with sudo for complete diagnostics:
-```
-sudo ./scripts/adminhub-cli.sh status
-```
-Without sudo, LaunchAgent verification will show as "DEGRADED" but this doesn't affect functionality.
-
-### "I need to uninstall it"
-```
+# Uninstall
 sudo ./scripts/adminhub-cli.sh uninstall
 ```
 
-## Advanced Features (for IT admins) 🔧
+## Troubleshooting 🛠️
 
-AdminHub has many advanced features that IT administrators might find useful:
-- Health monitoring
-- Detailed logging
-- Configuration management
-- Command-line interface
-
-To see all available commands:
+**Terminal doesn't open for Guest?**
+```bash
+./scripts/adminhub-cli.sh repair
 ```
+
+**Status shows "DEGRADED"?**
+- Run with sudo: `sudo ./scripts/adminhub-cli.sh status`
+- Without sudo, some checks can't run properly
+
+**Need help?**
+```bash
 ./scripts/adminhub-cli.sh --help
 ```
 
-## Common Questions ❓
+## How It Works 🔧
 
-**Q: Do students need to do anything?**
-A: No! They just log in as Guest and start coding.
+1. Admin installs tools to `/opt/admin-tools/`
+2. LaunchAgent runs when Guest logs in
+3. Tools are added to Guest's PATH automatically
+4. Everything resets when Guest logs out
 
-**Q: Will this slow down the computer?**
-A: No, tools only activate when Guest users log in.
+## License 📄
 
-**Q: Can I add more tools?**
-A: Yes, contact your IT admin to customize the tool list.
+MIT License - © 2025 Luka Löhr
 
-**Q: Is this secure?**
-A: Yes, Guest users can only use the tools, not modify them.
-
-**Q: What if a student breaks something?**
-A: They can't! Guest accounts reset on logout, and the tools are protected.
-
-## Need Help? 🆘
-
-- Check if it's working: `./scripts/adminhub-cli.sh tools test`
-- See system status: `sudo ./scripts/adminhub-cli.sh status`
-- Quick fix: `./scripts/adminhub-cli.sh repair`
-
-## About 📚
-
-Created by Luka Löhr for Lessing-Gymnasium Karlsruhe to make coding education easier.
-
-**License:** MIT (free to use and modify)
-
----
-
-*Making coding accessible for every student, one Guest account at a time!* 🚀
+Created for Lessing-Gymnasium Karlsruhe to make coding education accessible.

@@ -90,7 +90,7 @@ show_help() {
     echo ""
     echo -e "${CLI_INFO}Guest Management:${CLI_NC}"
     echo "  guest           Guest account operations"
-    echo "  test            Test guest setup"
+    echo ""
     echo ""
     echo -e "${CLI_BOLD}GLOBAL OPTIONS:${CLI_NC}"
     echo "  -v, --verbose   Enable verbose output"
@@ -371,25 +371,6 @@ cmd_tools() {
                 echo "  No tools configured"
             fi
             ;;
-        "test")
-            local tool="${OPTIONS[0]:-all}"
-            if [[ "$tool" == "all" ]]; then
-                bash "$SCRIPT_DIR/test.sh"
-            else
-                print_info "Testing tool: $tool"
-                local test_cmd=$(get_tool_info "$tool" "test_cmd")
-                if [[ -n "$test_cmd" ]]; then
-                    if eval "$test_cmd" &>/dev/null; then
-                        print_success "Tool $tool is working"
-                    else
-                        print_error "Tool $tool is not working"
-                        exit 1
-                    fi
-                else
-                    print_warning "No test command defined for $tool"
-                fi
-            fi
-            ;;
         "versions")
             print_info "Tool versions:"
             local tools_array=($(get_tools_array))
@@ -424,7 +405,7 @@ cmd_tools() {
             ;;
         *)
             print_error "Unknown tools subcommand: $SUBCOMMAND"
-            echo "Available: list, test [tool], versions, install <tool>"
+            echo "Available: list, versions, install <tool>"
             exit 1
             ;;
     esac
@@ -596,22 +577,6 @@ cmd_monitor() {
     esac
 }
 
-# Test commands
-cmd_test() {
-    case "$SUBCOMMAND" in
-        ""|"all")
-            bash "$SCRIPT_DIR/test.sh"
-            ;;
-        "guest")
-            bash "$SCRIPT_DIR/utils/monitoring.sh" guest
-            ;;
-        *)
-            print_error "Unknown test subcommand: $SUBCOMMAND"
-            echo "Available: all, guest"
-            exit 1
-            ;;
-    esac
-}
 
 # Main command dispatcher
 main() {
@@ -638,7 +603,6 @@ main() {
         update)      cmd_update ;;
         repair)      cmd_repair ;;
         monitor)     cmd_monitor ;;
-        test)        cmd_test ;;
         *)
             print_error "Unknown command: $COMMAND"
             echo "Use '$0 --help' for usage information."
