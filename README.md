@@ -44,7 +44,7 @@ AdminHub solves this by:
 2. **Run the installer**
    ```
    Type:
-   sudo ./setup.sh
+   sudo ./adminhub-cli.sh install
    
    (You'll need to enter your admin password)
    ```
@@ -61,7 +61,7 @@ That's it! The installation will take about 5 minutes.
 
 After installation, run this simple test:
 ```
-./test.sh
+./adminhub-cli.sh tools test
 ```
 
 You should see green checkmarks (✓) for everything.
@@ -108,7 +108,7 @@ You might see "DEGRADED" for some components. This is a false alarm - the system
 
 ### "I need to uninstall it"
 ```
-sudo ./uninstall.sh
+sudo ./adminhub-cli.sh uninstall
 ```
 
 ## Advanced Features (for IT admins) 🔧
@@ -143,7 +143,7 @@ A: They can't! Guest accounts reset on logout, and the tools are protected.
 
 ## Need Help? 🆘
 
-- Check if it's working: `./test.sh`
+- Check if it's working: `./adminhub-cli.sh tools test`
 - See system status: `./adminhub-cli.sh status`
 - Quick fix: `./adminhub-cli.sh repair`
 

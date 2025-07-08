@@ -366,7 +366,7 @@ cmd_tools() {
         "test")
             local tool="${OPTIONS[0]:-all}"
             if [[ "$tool" == "all" ]]; then
-                bash "$SCRIPT_DIR/test.sh"
+                bash "$SCRIPT_DIR/scripts/test.sh"
             else
                 print_info "Testing tool: $tool"
                 local test_cmd=$(get_tool_info "$tool" "test_cmd")
@@ -592,7 +592,7 @@ cmd_monitor() {
 cmd_test() {
     case "$SUBCOMMAND" in
         ""|"all")
-            bash "$SCRIPT_DIR/test.sh"
+            bash "$SCRIPT_DIR/scripts/test.sh"
             ;;
         "guest")
             bash "$SCRIPT_DIR/scripts/utils/monitoring.sh" guest
