@@ -199,7 +199,14 @@ INSTALLEOF
         fi
         
         # Link python and pip (not just python3)
-        if command -v python &> /dev/null; then
+        # Check for python in libexec first (Homebrew's unversioned symlinks)
+        if [ -e "/opt/homebrew/opt/python@3.13/libexec/bin/python" ]; then
+            create_symlink "/opt/homebrew/opt/python@3.13/libexec/bin/python" "$ADMIN_TOOLS_DIR/bin/python"
+            create_symlink "/opt/homebrew/opt/python@3.13/libexec/bin/pip" "$ADMIN_TOOLS_DIR/bin/pip"
+        elif [ -e "/opt/homebrew/opt/python@3.12/libexec/bin/python" ]; then
+            create_symlink "/opt/homebrew/opt/python@3.12/libexec/bin/python" "$ADMIN_TOOLS_DIR/bin/python"
+            create_symlink "/opt/homebrew/opt/python@3.12/libexec/bin/pip" "$ADMIN_TOOLS_DIR/bin/pip"
+        elif command -v python &> /dev/null; then
             create_symlink "$(which python)" "$ADMIN_TOOLS_DIR/bin/python"
             if command -v pip &> /dev/null; then
                 create_symlink "$(which pip)" "$ADMIN_TOOLS_DIR/bin/pip"
