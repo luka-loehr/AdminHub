@@ -1,11 +1,11 @@
 #!/bin/bash
 # Copyright (c) 2025 Luka Löhr
 
-# Homebrew-Berechtigungen korrigieren damit Guest die Tools nutzen kann
+# Fix Homebrew permissions so Guest can use the tools
 
-echo "🔧 Korrigiere Homebrew-Berechtigungen für Guest-Zugriff..."
+echo "🔧 Fixing Homebrew permissions for Guest access..."
 
-# Homebrew-Verzeichnisse für alle lesbar machen
+# Make Homebrew directories readable for all
 sudo chmod -R o+rX /opt/homebrew/bin
 sudo chmod -R o+rX /opt/homebrew/Cellar/node
 sudo chmod -R o+rX /opt/homebrew/Cellar/wget
@@ -14,10 +14,10 @@ sudo chmod -R o+rX /opt/homebrew/Cellar/git
 sudo chmod -R o+rX /opt/homebrew/lib
 sudo chmod -R o+rX /opt/homebrew/share
 
-echo "✅ Berechtigungen korrigiert!"
+echo "✅ Permissions fixed!"
 echo ""
-echo "Die folgenden Tools sollten jetzt für Guest zugänglich sein:"
-echo "  - node, npm (aus /opt/homebrew/bin/)"
-echo "  - wget (aus /opt/homebrew/bin/)"
-echo "  - jq (aus /opt/homebrew/bin/)"
-echo "  - git (aus /opt/homebrew/bin/)" 
+echo "The following tools should now be accessible for Guest:"
+echo "  - node, npm (from /opt/homebrew/bin/)"
+echo "  - wget (from /opt/homebrew/bin/)"
+echo "  - jq (from /opt/homebrew/bin/)"
+echo "  - git (from /opt/homebrew/bin/)" 

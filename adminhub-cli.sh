@@ -166,7 +166,7 @@ parse_args() {
                 elif [[ -z "$SUBCOMMAND" ]]; then
                     SUBCOMMAND="$1"
                 else
-                    OPTIONS=("${OPTIONS[@]}" "$1")
+                    OPTIONS+=("$1")
                 fi
                 shift
                 ;;
