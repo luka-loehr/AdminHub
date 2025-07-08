@@ -11,11 +11,11 @@ SCRIPT_VERSION="2.0.1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source utility libraries
-source "$SCRIPT_DIR/scripts/utils/logging.sh" 2>/dev/null || {
+source "$SCRIPT_DIR/utils/logging.sh" 2>/dev/null || {
     echo "Error: Could not load logging utilities"
     exit 1
 }
-source "$SCRIPT_DIR/scripts/utils/config.sh" 2>/dev/null || {
+source "$SCRIPT_DIR/utils/config.sh" 2>/dev/null || {
     echo "Error: Could not load configuration utilities"
     exit 1
 }
@@ -225,13 +225,13 @@ cmd_install() {
         "tools")
             print_info "Installing tools only..."
             if [[ "$DRY_RUN" == "false" ]]; then
-                bash "$SCRIPT_DIR/scripts/install_adminhub.sh"
+                bash "$SCRIPT_DIR/install_adminhub.sh"
             fi
             ;;
         "agent")
             print_info "Installing LaunchAgent only..."
             if [[ "$DRY_RUN" == "false" ]]; then
-                bash "$SCRIPT_DIR/scripts/setup/setup_guest_shell_init.sh"
+                bash "$SCRIPT_DIR/setup/setup_guest_shell_init.sh"
             fi
             ;;
         *)
@@ -259,13 +259,13 @@ cmd_uninstall() {
 cmd_status() {
     case "$SUBCOMMAND" in
         ""|"brief")
-            bash "$SCRIPT_DIR/scripts/utils/monitoring.sh" status
+            bash "$SCRIPT_DIR/utils/monitoring.sh" status
             ;;
         "detailed")
-            bash "$SCRIPT_DIR/scripts/utils/monitoring.sh" detailed
+            bash "$SCRIPT_DIR/utils/monitoring.sh" detailed
             ;;
         "json")
-            bash "$SCRIPT_DIR/scripts/utils/monitoring.sh" json
+            bash "$SCRIPT_DIR/utils/monitoring.sh" json
             ;;
         *)
             print_error "Unknown status subcommand: $SUBCOMMAND"
@@ -279,15 +279,15 @@ cmd_status() {
 cmd_health() {
     case "$SUBCOMMAND" in
         ""|"basic")
-            bash "$SCRIPT_DIR/scripts/utils/monitoring.sh" status
+            bash "$SCRIPT_DIR/utils/monitoring.sh" status
             ;;
         "detailed")
-            bash "$SCRIPT_DIR/scripts/utils/monitoring.sh" detailed
+            bash "$SCRIPT_DIR/utils/monitoring.sh" detailed
             ;;
         "continuous")
             local interval="${OPTIONS[0]:-300}"
             print_info "Starting continuous health monitoring (interval: ${interval}s)"
-            bash "$SCRIPT_DIR/scripts/utils/monitoring.sh" monitor "$interval"
+            bash "$SCRIPT_DIR/utils/monitoring.sh" monitor "$interval"
             ;;
         *)
             print_error "Unknown health subcommand: $SUBCOMMAND"
@@ -431,12 +431,12 @@ cmd_guest() {
             fi
             
             if [[ "$DRY_RUN" == "false" ]]; then
-                bash "$SCRIPT_DIR/scripts/guest_setup_auto.sh"
+                bash "$SCRIPT_DIR/guest_setup_auto.sh"
             fi
             print_success "Guest setup completed"
             ;;
         "test")
-            bash "$SCRIPT_DIR/scripts/utils/monitoring.sh" guest
+            bash "$SCRIPT_DIR/utils/monitoring.sh" guest
             ;;
         "cleanup")
             if [[ "$USER" == "Guest" ]]; then
@@ -472,7 +472,7 @@ cmd_logs() {
             show_logs "${OPTIONS[0]:-30}" "guest"
             ;;
         "alerts")
-            bash "$SCRIPT_DIR/scripts/utils/monitoring.sh" alerts "${OPTIONS[0]:-20}"
+            bash "$SCRIPT_DIR/utils/monitoring.sh" alerts "${OPTIONS[0]:-20}"
             ;;
         "clear")
             confirm_operation "This will clear all AdminHub logs"
@@ -504,14 +504,14 @@ cmd_permissions() {
         ""|"fix")
             print_info "Fixing permissions..."
             if [[ "$DRY_RUN" == "false" ]]; then
-                bash "$SCRIPT_DIR/scripts/utils/fix_homebrew_permissions.sh"
+                bash "$SCRIPT_DIR/utils/fix_homebrew_permissions.sh"
             fi
             print_success "Permissions fixed"
             ;;
         "check")
             print_info "Checking permissions..."
             # This would be part of the monitoring health check
-            bash "$SCRIPT_DIR/scripts/utils/monitoring.sh" status | grep -A 20 "Component Status"
+            bash "$SCRIPT_DIR/utils/monitoring.sh" status | grep -A 20 "Component Status"
             ;;
         *)
             print_error "Unknown permissions subcommand: $SUBCOMMAND"
@@ -555,10 +555,10 @@ cmd_repair() {
     fi
     
     # Run health checks and attempt repairs
-    bash "$SCRIPT_DIR/scripts/utils/monitoring.sh" status
+    bash "$SCRIPT_DIR/utils/monitoring.sh" status
     
     # Fix common issues
-    bash "$SCRIPT_DIR/scripts/utils/fix_homebrew_permissions.sh"
+    bash "$SCRIPT_DIR/utils/fix_homebrew_permissions.sh"
     
     # Reload LaunchAgent
     local plist_file="/Library/LaunchAgents/com.adminhub.guestsetup.plist"
@@ -575,10 +575,10 @@ cmd_monitor() {
     case "$SUBCOMMAND" in
         ""|"start")
             local interval="${OPTIONS[0]:-300}"
-            bash "$SCRIPT_DIR/scripts/utils/monitoring.sh" monitor "$interval"
+            bash "$SCRIPT_DIR/utils/monitoring.sh" monitor "$interval"
             ;;
         "status")
-            bash "$SCRIPT_DIR/scripts/utils/monitoring.sh" status
+            bash "$SCRIPT_DIR/utils/monitoring.sh" status
             ;;
         *)
             print_error "Unknown monitor subcommand: $SUBCOMMAND"
@@ -595,7 +595,7 @@ cmd_test() {
             bash "$SCRIPT_DIR/test.sh"
             ;;
         "guest")
-            bash "$SCRIPT_DIR/scripts/utils/monitoring.sh" guest
+            bash "$SCRIPT_DIR/utils/monitoring.sh" guest
             ;;
         *)
             print_error "Unknown test subcommand: $SUBCOMMAND"
