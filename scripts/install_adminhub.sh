@@ -143,20 +143,21 @@ EOF
 
 chmod +x /tmp/test_adminhub.sh
 
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "🔄 Opening new terminal with ready tools..."
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "➡️  New terminal opens in 2 seconds"
-echo ""
-sleep 2
-
 # Open new terminal and run test script (without AppleScript)
-/usr/bin/open -a Terminal /tmp/test_adminhub.sh
-
-echo "✅ New terminal opened!"
-echo ""
-echo "This window closes in 5 seconds..."
+# Skip this if called from AdminHub CLI
+if [ "$ADMINHUB_CLI_INSTALL" != "true" ]; then
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "🔄 Opening new terminal with ready tools..."
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    echo "➡️  New terminal opens in 2 seconds"
+    echo ""
+    sleep 2
+    /usr/bin/open -a Terminal /tmp/test_adminhub.sh
+    echo "✅ New terminal opened!"
+    echo ""
+    echo "This window closes in 5 seconds..."
+fi
 echo ""
 echo "For Guest users:"
 echo "1. Log out and log in as Guest"

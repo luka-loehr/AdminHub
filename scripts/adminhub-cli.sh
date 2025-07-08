@@ -215,7 +215,7 @@ cmd_install() {
                 return
             fi
             
-            if bash "$SCRIPT_DIR/setup.sh"; then
+            if ADMINHUB_CLI_INSTALL=true bash "$SCRIPT_DIR/setup.sh"; then
                 print_success "AdminHub installation completed successfully"
             else
                 print_error "Installation failed"
@@ -225,7 +225,7 @@ cmd_install() {
         "tools")
             print_info "Installing tools only..."
             if [[ "$DRY_RUN" == "false" ]]; then
-                bash "$SCRIPT_DIR/install_adminhub.sh"
+                ADMINHUB_CLI_INSTALL=true bash "$SCRIPT_DIR/install_adminhub.sh"
             fi
             ;;
         "agent")

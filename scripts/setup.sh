@@ -19,7 +19,7 @@ fi
 
 # Step 1: Main installation
 echo "📦 Step 1/2: Installing development tools..."
-./scripts/install_adminhub.sh
+ADMINHUB_CLI_INSTALL="${ADMINHUB_CLI_INSTALL:-false}" ./scripts/install_adminhub.sh
 
 # Step 2: Activate Guest setup
 echo ""
