@@ -217,6 +217,14 @@ cmd_install() {
             
             if ADMINHUB_CLI_INSTALL=true bash "$SCRIPT_DIR/setup.sh"; then
                 print_success "AdminHub installation completed successfully"
+                echo ""
+                # Clear screen and show health status
+                clear
+                print_header
+                print_success "Installation Complete!"
+                echo ""
+                # Run health check to show system status
+                bash "$SCRIPT_DIR/utils/monitoring.sh" status
             else
                 print_error "Installation failed"
                 exit 1
