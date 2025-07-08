@@ -69,7 +69,7 @@ check $result "guest_setup_auto.sh installed" && ((passed++))
 # 4. Tools
 echo ""
 echo "🔧 Checking tools in /opt/admin-tools/bin:"
-tools=("python3" "git" "node" "npm" "jq" "wget")
+tools=("brew" "python3" "python" "git" "pip3" "pip")
 for tool in "${tools[@]}"; do
     test -L "/opt/admin-tools/bin/$tool" -o -f "/opt/admin-tools/bin/$tool"
     result=$?

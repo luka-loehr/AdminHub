@@ -27,20 +27,25 @@ if command -v python3 &> /dev/null && [ -L "/opt/admin-tools/bin/python3" ]; the
     echo "✅ Tools activated!"
     echo ""
     echo "Available commands:"
+    
+    if [ -L "/opt/admin-tools/bin/brew" ]; then
+        echo "  • brew ($(brew --version 2>&1 | head -1))"
+    fi
+    
     echo "  • python3 ($(python3 --version 2>&1))"
+    
+    if [ -L "/opt/admin-tools/bin/python" ]; then
+        echo "  • python ($(python --version 2>&1))"
+    fi
+    
     echo "  • git ($(git --version))"
     
-    if [ -L "/opt/admin-tools/bin/node" ]; then
-        echo "  • node ($(node --version 2>/dev/null || echo 'Check permissions'))"
-        echo "  • npm ($(npm --version 2>/dev/null || echo 'Check permissions'))"
+    if [ -L "/opt/admin-tools/bin/pip3" ]; then
+        echo "  • pip3 ($(pip3 --version 2>/dev/null || echo 'Check permissions'))"
     fi
     
-    if [ -L "/opt/admin-tools/bin/jq" ]; then
-        echo "  • jq ($(jq --version 2>/dev/null || echo 'Check permissions'))"
-    fi
-    
-    if [ -L "/opt/admin-tools/bin/wget" ]; then
-        echo "  • wget (installed)"
+    if [ -L "/opt/admin-tools/bin/pip" ]; then
+        echo "  • pip ($(pip --version 2>/dev/null || echo 'Check permissions'))"
     fi
     
     echo ""

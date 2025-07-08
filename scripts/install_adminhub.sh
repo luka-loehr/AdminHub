@@ -81,12 +81,12 @@ echo ""
 echo "🎉 Tools are now available!"
 echo ""
 echo "Available commands:"
-echo "  • python3 - Python 3 with pip3"
+echo "  • brew - Homebrew package manager"
+echo "  • python3 - Python 3 programming language"
+echo "  • python - Python programming language"
 echo "  • git - Version control"
-echo "  • node - Node.js runtime"
-echo "  • npm - Node package manager"
-echo "  • jq - JSON processor"
-echo "  • wget - File downloader"
+echo "  • pip3 - Python 3 package installer"
+echo "  • pip - Python package installer"
 echo ""
 
 # Create installation test script
@@ -114,25 +114,38 @@ else
     echo "  ❌ Git not found"
 fi
 
-if command -v node &> /dev/null; then
-    echo "  ✅ Node.js $(node --version 2>/dev/null || echo 'installed')"
+if command -v brew &> /dev/null; then
+    echo "  ✅ Homebrew $(brew --version 2>&1 | head -1)"
 else
-    echo "  ❌ Node not found"
+    echo "  ❌ Homebrew not found"
 fi
 
-if command -v npm &> /dev/null; then
-    echo "  ✅ npm $(npm --version 2>/dev/null || echo 'installed')"
+if command -v python &> /dev/null; then
+    echo "  ✅ Python $(python --version 2>&1 | cut -d' ' -f2)"
 else
-    echo "  ❌ npm not found"
+    echo "  ❌ Python not found"
+fi
+
+if command -v pip3 &> /dev/null; then
+    echo "  ✅ pip3 $(pip3 --version | cut -d' ' -f2)"
+else
+    echo "  ❌ pip3 not found"
+fi
+
+if command -v pip &> /dev/null; then
+    echo "  ✅ pip $(pip --version | cut -d' ' -f2)"
+else
+    echo "  ❌ pip not found"
 fi
 
 echo ""
 echo "🎉 All tools are ready!"
 echo ""
 echo "Try these commands:"
+echo "  • brew --version"
 echo "  • python3 --version"
+echo "  • python --version"
 echo "  • git status"
-echo "  • node --version"
 echo ""
 
 # Cleanup
