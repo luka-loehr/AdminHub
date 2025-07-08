@@ -14,10 +14,9 @@ AdminHub solves this by:
 ## For Teachers 👩‍🏫👨‍🏫
 
 ### What your students get:
-- **Python** - For programming lessons
+- **Homebrew** - Package manager for installing tools
+- **Python & Python3** - For programming lessons (with pip/pip3)
 - **Git** - For saving and sharing code
-- **Node.js & npm** - For web development
-- **Other tools** - wget, jq for advanced projects
 
 ### How it helps you:
 - ✅ No more wasted class time installing software
@@ -71,9 +70,10 @@ You should see green checkmarks (✓) for everything.
 Just log in as Guest - Terminal will open automatically with all tools ready!
 
 Try these commands:
-- `python3` - Start Python
+- `python3` - Start Python 3
+- `python` - Start Python
 - `git --version` - Check Git
-- `npm --version` - Check npm
+- `brew --version` - Check Homebrew
 
 ## Troubleshooting for Teachers 🛠️
 
@@ -84,11 +84,11 @@ Run this command as admin:
 ```
 
 ### "I want to see what's happening"
-Check the system status:
+Check the system status (requires sudo for full diagnostics):
 ```
-./scripts/adminhub-cli.sh status
+sudo ./scripts/adminhub-cli.sh status
 ```
-This shows if everything is working correctly.
+This shows if everything is working correctly, including LaunchAgent verification.
 
 ### "Something seems broken"
 View recent errors:
@@ -96,15 +96,12 @@ View recent errors:
 ./scripts/adminhub-cli.sh logs error
 ```
 
-### "Status shows warnings when using sudo"
-This is normal! When you run:
+### Important: Running status command
+The status command should be run with sudo for complete diagnostics:
 ```
-sudo ./scripts/adminhub-cli.sh permissions check
+sudo ./scripts/adminhub-cli.sh status
 ```
-You might see "DEGRADED" for some components. This is a false alarm - the system works fine. Always check without sudo for accurate status:
-```
-./scripts/adminhub-cli.sh status
-```
+Without sudo, LaunchAgent verification will show as "DEGRADED" but this doesn't affect functionality.
 
 ### "I need to uninstall it"
 ```
@@ -144,7 +141,7 @@ A: They can't! Guest accounts reset on logout, and the tools are protected.
 ## Need Help? 🆘
 
 - Check if it's working: `./scripts/adminhub-cli.sh tools test`
-- See system status: `./scripts/adminhub-cli.sh status`
+- See system status: `sudo ./scripts/adminhub-cli.sh status`
 - Quick fix: `./scripts/adminhub-cli.sh repair`
 
 ## About 📚

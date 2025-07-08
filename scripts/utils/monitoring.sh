@@ -192,9 +192,33 @@ check_homebrew() {
     fi
     
     # Run brew doctor to check for issues (it returns 1 even for warnings)
+    # If running as root, switch to the regular user to avoid Homebrew warnings
     local doctor_output
-    doctor_output=$(brew doctor 2>&1)
-    local doctor_exit_code=$?
+    local doctor_exit_code
+    
+    if [[ $EUID -eq 0 ]]; then
+        # Running as root, determine the actual user
+        local actual_user
+        if [[ -n "$SUDO_USER" ]]; then
+            actual_user="$SUDO_USER"
+        else
+            actual_user=$(stat -f "%Su" /dev/console 2>/dev/null || echo "")
+        fi
+        
+        if [[ -n "$actual_user" && "$actual_user" != "root" ]]; then
+            # Run brew doctor as the actual user
+            doctor_output=$(su - "$actual_user" -c "brew doctor 2>&1")
+            doctor_exit_code=$?
+        else
+            # Fallback to running directly (will show warning)
+            doctor_output=$(brew doctor 2>&1)
+            doctor_exit_code=$?
+        fi
+    else
+        # Not root, run normally
+        doctor_output=$(brew doctor 2>&1)
+        doctor_exit_code=$?
+    fi
     
     # Check for "ready to brew" (perfect health)
     if echo "$doctor_output" | grep -q "ready to brew"; then
