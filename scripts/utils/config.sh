@@ -17,8 +17,8 @@ DEFAULT_ADMIN_TOOLS_DIR="/opt/admin-tools"
 DEFAULT_GUEST_TOOLS_DIR="/Users/Guest/tools"
 DEFAULT_SCRIPTS_DIR="/usr/local/bin"
 DEFAULT_LAUNCHAGENT_DIR="/Library/LaunchAgents"
-DEFAULT_TOOLS_LIST="python3,git,node,npm,jq,wget,pip3"
-DEFAULT_HOMEBREW_TOOLS="git,node,jq,wget"
+DEFAULT_TOOLS_LIST="brew,python3,python,git,pip3,pip"
+DEFAULT_HOMEBREW_TOOLS="git,python"
 DEFAULT_SYSTEM_TOOLS="python3,pip3"
 DEFAULT_AUTO_INSTALL_MISSING="true"
 DEFAULT_OPEN_TERMINAL_ON_LOGIN="true"
@@ -40,39 +40,36 @@ DEFAULT_PRESERVE_GUEST_SETTINGS="false"
 # Tool metadata functions (bash 3.2 compatible)
 get_tool_description() {
     case "$1" in
-        "python3") echo "Python 3 programming language with pip3" ;;
+        "brew") echo "Homebrew package manager" ;;
+        "python3") echo "Python 3 programming language" ;;
+        "python") echo "Python programming language" ;;
         "git") echo "Git version control system" ;;
-        "node") echo "Node.js JavaScript runtime" ;;
-        "npm") echo "Node Package Manager" ;;
-        "jq") echo "Lightweight JSON processor" ;;
-        "wget") echo "Network downloader" ;;
-        "pip3") echo "Python package installer" ;;
+        "pip3") echo "Python 3 package installer" ;;
+        "pip") echo "Python package installer" ;;
         *) echo "Development tool" ;;
     esac
 }
 
 get_tool_version_cmd() {
     case "$1" in
+        "brew") echo "--version" ;;
         "python3") echo "--version" ;;
+        "python") echo "--version" ;;
         "git") echo "--version" ;;
-        "node") echo "--version" ;;
-        "npm") echo "--version" ;;
-        "jq") echo "--version" ;;
-        "wget") echo "--version | head -1" ;;
         "pip3") echo "--version" ;;
+        "pip") echo "--version" ;;
         *) echo "--version" ;;
     esac
 }
 
 get_tool_test_cmd() {
     case "$1" in
+        "brew") echo "--version > /dev/null 2>&1" ;;
         "python3") echo "-c 'print(\"OK\")'" ;;
+        "python") echo "-c 'print(\"OK\")'" ;;
         "git") echo "--version > /dev/null 2>&1" ;;
-        "node") echo "-e 'console.log(\"OK\")'" ;;
-        "npm") echo "--version > /dev/null 2>&1" ;;
-        "jq") echo ". <<< '{}' > /dev/null 2>&1" ;;
-        "wget") echo "--version > /dev/null 2>&1" ;;
         "pip3") echo "--version > /dev/null 2>&1" ;;
+        "pip") echo "--version > /dev/null 2>&1" ;;
         *) echo "--version > /dev/null 2>&1" ;;
     esac
 }
@@ -100,8 +97,8 @@ LAUNCHAGENT_DIR=/Library/LaunchAgents
 
 # Tool Configuration
 # Comma-separated list of tools to manage
-TOOLS_LIST=python3,git,node,npm,jq,wget,pip3
-HOMEBREW_TOOLS=git,node,jq,wget
+TOOLS_LIST=brew,python3,python,git,pip3,pip
+HOMEBREW_TOOLS=git,python
 SYSTEM_TOOLS=python3,pip3
 
 # Behavior Settings
