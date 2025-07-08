@@ -48,7 +48,7 @@ result=$?
 ((total++))
 check $result "LaunchAgent installed" && ((passed++))
 
-sudo launchctl list 2>/dev/null | grep -q "com.adminhub.guestsetup"
+launchctl list 2>/dev/null | grep -q "com.adminhub.guestsetup"
 result=$?
 ((total++))
 check $result "LaunchAgent loaded" && ((passed++))
