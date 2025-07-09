@@ -56,28 +56,50 @@ case $COMMAND in
             local tool=$1
             local display_name=$2
             
+            # First check if it's in PATH
             if command -v $tool &> /dev/null; then
                 return 0
-            else
-                return 1
             fi
+            
+            # Check common Homebrew locations
+            if [ -e "/opt/homebrew/bin/$tool" ] || [ -e "/usr/local/bin/$tool" ]; then
+                return 0
+            fi
+            
+            # Special case for python/pip - check libexec directories
+            if [[ "$tool" == "python" ]] || [[ "$tool" == "pip" ]]; then
+                if [ -e "/opt/homebrew/opt/python@3.13/libexec/bin/$tool" ] || \
+                   [ -e "/opt/homebrew/opt/python@3.12/libexec/bin/$tool" ] || \
+                   [ -e "/opt/homebrew/opt/python@3.11/libexec/bin/$tool" ]; then
+                    return 0
+                fi
+            fi
+            
+            # Also check our admin tools directory
+            if [ -e "$ADMIN_TOOLS_DIR/bin/$tool" ]; then
+                return 0
+            fi
+            
+            return 1
         }
         
         # Check all required tools
         MISSING_TOOLS=false
+        MISSING_LIST=""
         
-        check_tool "brew" "Homebrew" || MISSING_TOOLS=true
-        check_tool "python3" "Python3" || MISSING_TOOLS=true
-        check_tool "python" "Python" || MISSING_TOOLS=true
-        check_tool "pip3" "pip3" || MISSING_TOOLS=true
-        check_tool "pip" "pip" || MISSING_TOOLS=true
-        check_tool "git" "Git" || MISSING_TOOLS=true
+        check_tool "brew" "Homebrew" || { MISSING_TOOLS=true; MISSING_LIST="$MISSING_LIST brew"; }
+        check_tool "python3" "Python3" || { MISSING_TOOLS=true; MISSING_LIST="$MISSING_LIST python3"; }
+        check_tool "python" "Python" || { MISSING_TOOLS=true; MISSING_LIST="$MISSING_LIST python"; }
+        check_tool "pip3" "pip3" || { MISSING_TOOLS=true; MISSING_LIST="$MISSING_LIST pip3"; }
+        check_tool "pip" "pip" || { MISSING_TOOLS=true; MISSING_LIST="$MISSING_LIST pip"; }
+        check_tool "git" "Git" || { MISSING_TOOLS=true; MISSING_LIST="$MISSING_LIST git"; }
         
         # If tools are missing, ask if they should be installed
         if [ "$MISSING_TOOLS" = true ]; then
             echo ""
-            echo -e "${YELLOW}⚠️  Some tools are missing and need to be installed.${NC}"
-            echo -n "Install now? (y/n): "
+            echo -e "${YELLOW}⚠️  Some tools need to be configured:${NC}"
+            echo "Missing:$MISSING_LIST"
+            echo -n "Configure now? (y/n): "
             read -r response
             
             if [[ ! "$response" =~ ^[yY]$ ]]; then
@@ -112,8 +134,32 @@ echo "📦 Installing tools via Homebrew..."
 TOOLS_TO_INSTALL=""
 
 # Check which tools are missing and add them to the list
-command -v git &> /dev/null || TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL git"
-command -v python &> /dev/null || TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL python"
+if ! command -v git &> /dev/null && ! [ -e "/opt/homebrew/bin/git" ] && ! [ -e "/usr/local/bin/git" ]; then
+    TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL git"
+fi
+
+# For Python, we need to check if python3 is installed but python/pip symlinks are missing
+PYTHON_INSTALLED=false
+PYTHON_VERSION=""
+
+# Check for existing Python installations
+for version in 3.13 3.12 3.11; do
+    if [ -e "/opt/homebrew/opt/python@$version/libexec/bin/python" ]; then
+        PYTHON_INSTALLED=true
+        PYTHON_VERSION=$version
+        break
+    fi
+done
+
+# Also check if python3 exists
+if command -v python3 &> /dev/null || [ -e "/opt/homebrew/bin/python3" ]; then
+    PYTHON_INSTALLED=true
+fi
+
+# Only install Python if it's not already installed
+if [ "$PYTHON_INSTALLED" = false ]; then
+    TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL python"
+fi
 
 if [ -n "$TOOLS_TO_INSTALL" ]; then
     echo "Installing: $TOOLS_TO_INSTALL"
@@ -121,7 +167,10 @@ if [ -n "$TOOLS_TO_INSTALL" ]; then
     echo ""
     echo "✅ Installation completed!"
 else
-    echo "✅ All tools already installed!"
+    echo "✅ All core tools already installed!"
+    if [ "$PYTHON_INSTALLED" = true ]; then
+        echo "   Python is installed - will create symlinks for python/pip commands"
+    fi
 fi
 INSTALLEOF
             
