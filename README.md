@@ -58,9 +58,6 @@ brew --version       # Check Homebrew
 # Check system health (requires sudo)
 sudo ./scripts/adminhub-cli.sh status
 
-# Fix permission issues
-sudo ./scripts/adminhub-cli.sh repair
-
 # View error logs
 ./scripts/adminhub-cli.sh logs error
 
@@ -71,9 +68,8 @@ sudo ./scripts/adminhub-cli.sh uninstall
 ## Troubleshooting 🛠️
 
 **Terminal doesn't open for Guest?**
-```bash
-./scripts/adminhub-cli.sh repair
-```
+- Check status: `sudo ./scripts/adminhub-cli.sh status`
+- Reinstall if needed: `sudo ./scripts/adminhub-cli.sh install`
 
 **Status shows "DEGRADED"?**
 - Run with sudo: `sudo ./scripts/adminhub-cli.sh status`

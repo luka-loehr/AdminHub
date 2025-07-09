@@ -75,7 +75,6 @@ show_help() {
     echo "  install         Install AdminHub system"
     echo "  uninstall       Remove AdminHub system"
     echo "  update          Update AdminHub components"
-    echo "  repair          Repair broken installation"
     echo ""
     echo -e "${CLI_INFO}System Management:${CLI_NC}"
     echo "  status          Show system status"
@@ -534,33 +533,6 @@ cmd_update() {
     print_success "Update completed"
 }
 
-# Repair commands
-cmd_repair() {
-    require_root
-    
-    print_info "Repairing AdminHub installation..."
-    
-    if [[ "$DRY_RUN" == "true" ]]; then
-        print_info "Would run repair operations"
-        return
-    fi
-    
-    # Run health checks and attempt repairs
-    bash "$SCRIPT_DIR/utils/monitoring.sh" status
-    
-    # Fix common issues
-    bash "$SCRIPT_DIR/utils/fix_homebrew_permissions.sh"
-    
-    # Reload LaunchAgent
-    local plist_file="/Library/LaunchAgents/com.adminhub.guestsetup.plist"
-    if [[ -f "$plist_file" ]]; then
-        launchctl unload "$plist_file" 2>/dev/null || true
-        launchctl load "$plist_file" 2>/dev/null || true
-    fi
-    
-    print_success "Repair operations completed"
-}
-
 # Monitor commands
 cmd_monitor() {
     case "$SUBCOMMAND" in
@@ -603,7 +575,6 @@ main() {
         logs)        cmd_logs ;;
         permissions) cmd_permissions ;;
         update)      cmd_update ;;
-        repair)      cmd_repair ;;
         monitor)     cmd_monitor ;;
         *)
             print_error "Unknown command: $COMMAND"
