@@ -8,27 +8,20 @@ AdminHub is a macOS system administration tool that automatically provides devel
 
 ## Key Commands
 
-### Building Packages
-```bash
-# Build both installer and uninstaller packages
-./build_all_packages.sh
-
-# Build only the installer
-./build_installer.sh
-```
-
-### Development & Testing
+### Installation & Management
 ```bash
 # Install AdminHub (requires sudo)
 sudo ./scripts/adminhub-cli.sh install
 
-# Check system status
+# Check system status - all components should show "✅ HEALTHY"
 sudo ./scripts/adminhub-cli.sh status
 
 # View logs (error/info/debug)
 ./scripts/adminhub-cli.sh logs error
+./scripts/adminhub-cli.sh logs info
+./scripts/adminhub-cli.sh logs debug
 
-# Monitor system health
+# Monitor system health continuously
 ./scripts/adminhub-cli.sh monitor
 
 # Uninstall
@@ -43,17 +36,25 @@ This project uses manual testing via the CLI status and health commands. There a
 ### Core Components
 
 1. **CLI Management System** (`scripts/adminhub-cli.sh`)
-   - Central management interface for all AdminHub operations
+   - Central management interface for all AdminHub operations (v2.0.1)
    - Bash 3.2 compatible (macOS default)
    - Modular command structure with subcommands
+   - Commands: install, uninstall, status, logs, monitor
 
-2. **Utility Modules** (`scripts/utils/`)
+2. **Installation Scripts**
+   - `scripts/install_adminhub.sh`: Main installation orchestrator
+   - `scripts/uninstall.sh`: Clean uninstallation process
+   - Both scripts check prerequisites and handle permissions
+
+3. **Utility Modules** (`scripts/utils/`)
    - `logging.sh`: Centralized logging with rotation and severity levels
    - `config.sh`: Configuration management and validation
    - `monitoring.sh`: Health monitoring and alerting system
+   - `activate_tools.sh`: Tool activation for Guest users
+   - `fix_homebrew_permissions.sh`: Homebrew permission management
    - All modules follow strict bash error handling (`set -euo pipefail`)
 
-3. **Guest Setup Pipeline**
+4. **Guest Setup Pipeline**
    - `launchagents/com.adminhub.guestsetup.plist`: Triggers on Guest login
    - `scripts/setup/guest_login_setup.sh`: Main setup orchestrator
    - `scripts/setup/guest_tools_setup.sh`: Tool installation logic
@@ -67,21 +68,45 @@ This project uses manual testing via the CLI status and health commands. There a
 
 ### Bash Compatibility
 - **MUST** maintain compatibility with Bash 3.2 (macOS default)
-- Avoid bash 4+ features (associative arrays, etc.)
+- Avoid bash 4+ features (associative arrays, mapfile, etc.)
 - Use POSIX-compliant constructs where possible
+- Test on macOS with `/bin/bash --version` (should be 3.2.x)
 
 ### Error Handling Pattern
 All scripts follow this pattern:
 ```bash
+#!/bin/bash
 set -euo pipefail  # Strict error handling
-source logging/config utilities
-check prerequisites
-perform operations with extensive logging
-cleanup on exit
+
+# Source utilities
+source "$(dirname "$0")/utils/logging.sh"
+source "$(dirname "$0")/utils/config.sh"
+
+# Check prerequisites
+check_sudo || exit 1
+check_homebrew || exit 1
+
+# Perform operations with extensive logging
+log_info "Starting operation..."
+# ... main logic ...
+
+# Cleanup on exit (if needed)
+trap cleanup EXIT
 ```
 
-### Package Building
-Uses native macOS tools (`pkgbuild`, `productbuild`) to create signed installer packages. The build process:
-1. Stages files in `pkg_build/` directories
-2. Creates component packages
-3. Builds distribution packages with pre/post-install scripts
+### Logging Standards
+- Use `log_error`, `log_info`, `log_debug` from `logging.sh`
+- Logs stored in `/var/log/adminhub/` with automatic rotation
+- Always log significant operations and state changes
+- Include context in error messages
+
+### Package Building (Not Currently Implemented)
+The CLAUDE.md references build scripts that don't exist in the repository:
+- `./build_all_packages.sh` - Would build installer and uninstaller packages
+- `./build_installer.sh` - Would build only the installer
+
+If implementing package building, use native macOS tools:
+1. `pkgbuild` for component packages
+2. `productbuild` for distribution packages
+3. Stage files in `pkg_build/` directories
+4. Include pre/post-install scripts
