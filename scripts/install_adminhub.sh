@@ -24,6 +24,14 @@ fi
 # Make all scripts executable
 find scripts -name "*.sh" -type f -exec chmod +x {} \; 2>/dev/null
 
+# Fix Homebrew issues on older Macs before proceeding with installation
+echo "🔧 Repairing Homebrew (required for older Macs)..."
+if ./scripts/utils/homebrew_repair.sh; then
+    echo "✅ Homebrew repair completed"
+else
+    echo "⚠️  Homebrew repair encountered issues, but continuing with installation..."
+fi
+
 # Run main setup
 ./scripts/setup/guest_tools_setup.sh
 
