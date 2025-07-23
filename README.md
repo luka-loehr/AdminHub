@@ -1,3 +1,7 @@
+<!--
+Copyright (c) 2025 Luka Löhr
+-->
+
 # AdminHub
 
 Automated developer tool deployment for macOS Guest accounts.

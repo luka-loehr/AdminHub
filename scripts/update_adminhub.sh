@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright (c) 2025 Luka Löhr
+#
 # AdminHub Update Script
 # Pulls latest changes from GitHub and reruns installation
 

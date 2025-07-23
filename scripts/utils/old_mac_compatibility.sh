@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright (c) 2025 Luka Löhr
+#
 # Old Mac Compatibility Checker - Validates system requirements for AdminHub
 # Handles macOS versions back to 10.14 (Mojave) and identifies potential issues
 

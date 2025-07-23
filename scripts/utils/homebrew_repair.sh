@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright (c) 2025 Luka Löhr
+#
 # Homebrew repair utility - bulletproof version for all macOS configurations
 # Handles Apple Silicon (/opt/homebrew) and Intel (/usr/local) installations
 # Fixes permissions, symlinks, dependencies, and Python/OpenSSL issues

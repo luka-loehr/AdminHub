@@ -1,3 +1,7 @@
+<!--
+Copyright (c) 2025 Luka Löhr
+-->
+
 # AdminHub Security Architecture
 
 ## Overview

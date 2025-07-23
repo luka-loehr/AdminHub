@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright (c) 2025 Luka Löhr
+#
 # Guest Security Wrapper - Prevents system-wide installations
 # This script creates secure wrapper scripts for all tools
 
@@ -300,12 +302,6 @@ if [[ "$USER" == "Guest" ]]; then
     # Aliases for extra safety
     alias sudo='echo "❌ sudo is not available for Guest users"; false'
     alias su='echo "❌ su is not available for Guest users"; false'
-    
-    # Informative message
-    echo "🔒 Guest Security Mode Active"
-    echo "   • All installations will be user-local"
-    echo "   • System modifications are blocked"
-    echo "   • Your work resets on logout"
 fi
 EOF
     

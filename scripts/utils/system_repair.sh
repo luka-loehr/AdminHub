@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright (c) 2025 Luka Löhr
+#
 # System Repair Utility - Fixes common issues on old Macs
 # Handles Xcode CLT, certificates, Git configuration, and system prerequisites
 
