@@ -92,6 +92,8 @@ AdminHub implements strict security for Guest users:
 
 All Guest modifications are isolated to their session and automatically cleaned on logout.
 
+For detailed security architecture and rationale, see [SECURITY.md](SECURITY.md).
+
 ## Troubleshooting
 
 - **Installation fails**: Check prerequisites and disk space
