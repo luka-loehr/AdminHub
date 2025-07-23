@@ -8,12 +8,18 @@ Automated developer tool deployment for macOS Guest accounts.
 
 ## Overview
 
-AdminHub automatically provides development tools to Guest users on shared Macs.
+AdminHub automatically provides development tools to Guest users on shared Macs with enterprise-grade security.
 
 **Tools included:**
 - Python 3 & Python (with pip)
 - Git
 - Homebrew
+
+**Security features:**
+- All Guest modifications are user-local only
+- System-wide installations are blocked
+- Changes reset on logout
+- No risk of students breaking tools
 
 ## Requirements
 
@@ -62,9 +68,29 @@ If status shows issues, check logs:
 ## How It Works
 
 1. Admin installs tools to `/opt/admin-tools/`
-2. LaunchAgent activates on Guest login
-3. Tools added to Guest's PATH
-4. Everything resets on Guest logout
+2. Security wrappers prevent system modifications
+3. LaunchAgent activates on Guest login
+4. Tools added to Guest's PATH
+5. All Guest changes stay in their home directory
+6. Everything resets on Guest logout
+
+## Security
+
+AdminHub implements strict security for Guest users:
+
+- **Blocked Operations**:
+  - `brew install/uninstall` - No system packages
+  - `pip install` without `--user` - Auto-adds flag
+  - `npm install -g` - No global packages
+  - `sudo` commands - Completely disabled
+  
+- **Allowed Operations**:
+  - `pip install --user numpy` - Installs to ~/.local
+  - `brew list` - View installed packages
+  - `python script.py` - Run Python code
+  - `git clone` - Work with repositories
+
+All Guest modifications are isolated to their session and automatically cleaned on logout.
 
 ## Troubleshooting
 

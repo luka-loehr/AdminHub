@@ -69,7 +69,12 @@ echo ""
 echo "📦 Installing AdminHub tools..."
 ./scripts/setup/guest_tools_setup.sh
 
-# Step 6: Fix permissions
+# Step 6: Setup security wrappers
+echo ""
+echo "🔒 Setting up security wrappers..."
+./scripts/utils/guest_security_wrapper.sh
+
+# Step 7: Fix permissions
 echo ""
 echo "🔐 Fixing permissions..."
 ./scripts/utils/fix_homebrew_permissions.sh

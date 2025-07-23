@@ -62,6 +62,11 @@ if [[ ! -d "$GUEST_TOOLS_DIR/bin" ]]; then
     # Set PATH
     export PATH="$GUEST_TOOLS_DIR/bin:$PATH"
     
+    # Apply security environment for Guest
+    if [ -f "/opt/admin-tools/wrappers/guest_security_env.sh" ]; then
+        source "/opt/admin-tools/wrappers/guest_security_env.sh"
+    fi
+    
     echo ""
     echo "✅ Setup completed!"
     echo ""
