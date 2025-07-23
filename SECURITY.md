@@ -148,35 +148,73 @@ fi
 exec "$ACTUAL_PIP" "$@"
 ```
 
-## Alternative Approaches Considered
+## Why Not Allow brew install with Cleanup?
 
-### 1. Separate Homebrew Instance per User
-**Idea**: Install Homebrew to `~/.homebrew/` for each Guest
+A common question: "Why not track what Guest installs and remove it on logout?"
 
-**Why rejected:**
-- Homebrew hardcodes many paths at compile time
-- Would need to compile bottles from source (slow)
-- High disk usage (GB per user)
-- Complex PATH management
-- Potential conflicts with system Homebrew
+### The Dependency Problem
 
-### 2. Container/Sandbox Approach
-**Idea**: Run each tool in an isolated container
+When you install a package with Homebrew, it often installs dependencies:
 
-**Why rejected:**
-- Significant performance overhead
-- Complex to implement on macOS
-- Requires additional software
-- Poor user experience (tools feel disconnected)
+```bash
+# Guest installs:
+brew install node
 
-### 3. Allow Everything, Clean Later
-**Idea**: Let Guest install anything, clean up on logout
+# Homebrew actually installs:
+# - node (what user wanted)
+# - icu4c (Unicode library)
+# - openssl@3 (SSL library)  
+# - ca-certificates (Root certificates)
+```
 
-**Why rejected:**
-- Guest could break tools mid-session
-- No way to prevent malicious changes
-- Cleanup might fail or be incomplete
-- Other users affected until cleanup runs
+If we remove all of these on logout, we might break AdminHub tools that depend on the same libraries.
+
+### The Version Conflict Problem
+
+```bash
+# AdminHub uses:
+python@3.11
+
+# Guest installs:
+brew install python@3.12
+
+# Result: Two Python versions
+# Problem: Which one should pip use?
+# Bigger problem: brew upgrade python would upgrade AdminHub's Python!
+```
+
+### The Upgrade Problem
+
+Upgrades are irreversible:
+
+```bash
+# Guest runs:
+brew upgrade python
+
+# This upgrades system Python from 3.11 to 3.12
+# Cannot "downgrade" back - original version is gone
+# AdminHub might break if not compatible with 3.12
+```
+
+### The Formula Modification Problem
+
+```bash
+# Guest runs:
+brew tap some-random/tap
+brew install some-random/modified-python --force
+
+# This could replace AdminHub's Python with a modified version
+# No way to detect this happened
+```
+
+### Why Current Approach is Better
+
+By blocking brew modifications entirely:
+1. **Zero maintenance** - No cleanup needed
+2. **Guaranteed stability** - Tools always work
+3. **Fast logouts** - No cleanup process
+4. **No conflicts** - One version of everything
+5. **Predictable** - Every student gets identical environment
 
 ## Security Benefits
 
