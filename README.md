@@ -8,7 +8,7 @@ Automated developer tool deployment for macOS Guest accounts.
 
 ## Overview
 
-AdminHub automatically provides development tools to Guest users on shared Macs. IT admins install once, students get instant access.
+AdminHub automatically provides development tools to Guest users on shared Macs.
 
 **Tools included:**
 - Python 3 & Python (with pip)
@@ -41,8 +41,6 @@ All components should show "✅ HEALTHY".
 
 ## Usage
 
-### For IT Admins
-
 ```bash
 sudo ./scripts/adminhub-cli.sh status     # Check if working
 ./scripts/adminhub-cli.sh update          # Update from GitHub
@@ -53,10 +51,6 @@ If status shows issues, check logs:
 ```bash
 ./scripts/adminhub-cli.sh logs error     # View error logs
 ```
-
-### For Students
-
-Log in as Guest. Terminal opens automatically with all tools ready.
 
 ## Architecture
 
@@ -72,22 +66,11 @@ Log in as Guest. Terminal opens automatically with all tools ready.
 3. Tools added to Guest's PATH
 4. Everything resets on Guest logout
 
-## CLI Reference
-
-```bash
-adminhub install              # Install system
-adminhub uninstall            # Remove system  
-adminhub update               # Update from GitHub
-adminhub status               # Check if working
-adminhub logs error           # View error logs (if needed)
-adminhub --help               # Show all available commands
-```
-
-## Support
+## Troubleshooting
 
 - **Installation fails**: Check prerequisites and disk space
-- **Status shows DEGRADED**: Run with sudo for full diagnostics
-- **Tools not available**: Check Guest account settings
+- **Status shows issues**: Check error logs with `adminhub logs error`
+- **Need more commands**: Run `adminhub --help`
 
 ## License
 
