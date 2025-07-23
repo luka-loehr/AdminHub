@@ -43,19 +43,15 @@ All components should show "✅ HEALTHY".
 
 ### For IT Admins
 
-**Basic Commands**
 ```bash
-sudo ./scripts/adminhub-cli.sh status     # Check system health
+sudo ./scripts/adminhub-cli.sh status     # Check if working
 ./scripts/adminhub-cli.sh update          # Update from GitHub
 sudo ./scripts/adminhub-cli.sh uninstall  # Remove AdminHub
 ```
 
-**Troubleshooting**
+If status shows issues, check logs:
 ```bash
-sudo ./scripts/adminhub-cli.sh health detailed    # Detailed diagnostics
-sudo ./scripts/adminhub-cli.sh permissions fix    # Fix permission issues
-./scripts/adminhub-cli.sh logs error              # View error logs
-./scripts/adminhub-cli.sh --help                  # Show all commands
+./scripts/adminhub-cli.sh logs error     # View error logs
 ```
 
 ### For Students
@@ -79,21 +75,12 @@ Log in as Guest. Terminal opens automatically with all tools ready.
 ## CLI Reference
 
 ```bash
-# Core Commands
 adminhub install              # Install system
-adminhub uninstall            # Remove system
+adminhub uninstall            # Remove system  
 adminhub update               # Update from GitHub
-adminhub status               # Quick health check
-
-# Diagnostics
-adminhub health detailed      # Full system check
-adminhub logs [error|info|debug]  # View logs
-adminhub permissions fix      # Fix file permissions
-
-# Configuration
-adminhub config show          # View settings
-adminhub config set KEY VALUE # Change settings
-adminhub tools list           # List available tools
+adminhub status               # Check if working
+adminhub logs error           # View error logs (if needed)
+adminhub --help               # Show all available commands
 ```
 
 ## Support
