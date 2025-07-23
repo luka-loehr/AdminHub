@@ -2,12 +2,18 @@
 # Homebrew repair utility - bulletproof version for all macOS configurations
 # Handles Apple Silicon (/opt/homebrew) and Intel (/usr/local) installations
 # Fixes permissions, symlinks, dependencies, and Python/OpenSSL issues
+# Enhanced with support for old Macs (4+ years without updates)
 
 set -euo pipefail
 
 # Source logging utility
 SCRIPT_DIR="$(dirname "$0")"
 source "${SCRIPT_DIR}/logging.sh"
+
+# Source compatibility checker for version comparison
+if [[ -f "${SCRIPT_DIR}/old_mac_compatibility.sh" ]]; then
+    source "${SCRIPT_DIR}/old_mac_compatibility.sh"
+fi
 
 # Global variables for output
 BREW_PREFIX=""
@@ -41,6 +47,98 @@ run_as_user() {
     fi
 }
 
+# Check Ruby version compatibility
+check_ruby_compatibility() {
+    log_info "Checking Ruby version for Homebrew compatibility..."
+    
+    if ! command -v ruby &>/dev/null; then
+        log_error "Ruby not found - this should not happen on macOS"
+        return 1
+    fi
+    
+    local ruby_version=$(ruby -e 'puts RUBY_VERSION' 2>/dev/null || echo "0.0.0")
+    log_debug "System Ruby version: $ruby_version"
+    
+    # Homebrew requires Ruby 2.6+
+    if declare -f version_compare >/dev/null 2>&1; then
+        if [[ $(version_compare "$ruby_version" "2.6.0") -eq -1 ]]; then
+            log_warn "Ruby $ruby_version is too old for modern Homebrew (requires 2.6+)"
+            log_info "Setting HOMEBREW_FORCE_VENDOR_RUBY to use portable Ruby"
+            export HOMEBREW_FORCE_VENDOR_RUBY=1
+            return 2
+        fi
+    else
+        # Fallback check without version_compare
+        local major=$(echo "$ruby_version" | cut -d. -f1)
+        local minor=$(echo "$ruby_version" | cut -d. -f2)
+        if [[ $major -lt 2 ]] || [[ $major -eq 2 && $minor -lt 6 ]]; then
+            log_warn "Ruby $ruby_version may be too old for Homebrew"
+            export HOMEBREW_FORCE_VENDOR_RUBY=1
+            return 2
+        fi
+    fi
+    
+    return 0
+}
+
+# Clean up legacy Homebrew installations
+cleanup_legacy_homebrew() {
+    log_info "Checking for legacy Homebrew installations..."
+    
+    local legacy_found=false
+    local legacy_dirs=()
+    
+    # Check for very old Homebrew structure
+    if [[ "$BREW_PREFIX" == "/usr/local" ]]; then
+        # Old Homebrew used to put everything directly in /usr/local
+        local old_indicators=(
+            "/usr/local/Library/brew.rb"
+            "/usr/local/Library/Homebrew/brew.rb"
+            "/usr/local/.git"
+        )
+        
+        for indicator in "${old_indicators[@]}"; do
+            if [[ -e "$indicator" ]]; then
+                log_warn "Found legacy Homebrew indicator: $indicator"
+                legacy_found=true
+                legacy_dirs+=("$indicator")
+            fi
+        done
+    fi
+    
+    # Check for abandoned Homebrew directories
+    local abandoned_dirs=(
+        "/usr/local/Homebrew.old"
+        "/usr/local/Library/Taps/homebrew/homebrew-php"
+        "/usr/local/Library/Taps/homebrew/homebrew-apache"
+        "/usr/local/Library/Taps/homebrew/homebrew-dupes"
+        "/usr/local/Library/Taps/homebrew/homebrew-versions"
+    )
+    
+    for dir in "${abandoned_dirs[@]}"; do
+        if [[ -d "$dir" ]]; then
+            log_warn "Found abandoned Homebrew directory: $dir"
+            legacy_found=true
+            legacy_dirs+=("$dir")
+        fi
+    done
+    
+    if [[ "$legacy_found" == "true" ]]; then
+        log_warn "Legacy Homebrew files detected. Consider backing up and removing:"
+        for dir in "${legacy_dirs[@]}"; do
+            log_warn "  - $dir"
+        done
+        
+        # Don't auto-remove, just warn
+        log_info "After backing up, you can remove these with:"
+        log_info "  sudo rm -rf ${legacy_dirs[*]}"
+    else
+        log_info "No legacy Homebrew installations found"
+    fi
+    
+    return 0
+}
+
 # Auto-detect Homebrew installation location
 detect_homebrew_prefix() {
     log_info "Auto-detecting Homebrew installation location..."
@@ -56,6 +154,10 @@ detect_homebrew_prefix() {
         if [[ -x "$prefix/bin/brew" ]]; then
             BREW_PREFIX="$prefix"
             log_info "Found Homebrew at: $BREW_PREFIX"
+            
+            # Check if this is a legacy installation
+            cleanup_legacy_homebrew
+            
             return 0
         fi
     done
@@ -437,12 +539,61 @@ output_variables() {
     fi
 }
 
+# Fix Python 2 compatibility for old systems
+fix_python2_compatibility() {
+    log_info "Checking Python 2 compatibility for legacy tools..."
+    
+    # Some old tools still require python2
+    if ! command -v python2 &>/dev/null; then
+        # Check if python2.7 exists
+        if command -v python2.7 &>/dev/null; then
+            log_info "Creating python2 symlink to python2.7"
+            ln -sf "$(which python2.7)" "$BREW_PREFIX/bin/python2" 2>/dev/null || \
+                log_debug "Could not create python2 symlink"
+        elif [[ -x "/usr/bin/python2.7" ]]; then
+            log_info "Creating python2 symlink to system python2.7"
+            ln -sf "/usr/bin/python2.7" "$BREW_PREFIX/bin/python2" 2>/dev/null || \
+                log_debug "Could not create python2 symlink"
+        else
+            log_debug "No Python 2.7 found for compatibility layer"
+        fi
+    fi
+    
+    return 0
+}
+
+# Handle very old Homebrew versions
+handle_old_homebrew_version() {
+    log_info "Checking Homebrew version compatibility..."
+    
+    local brew_version=$(run_as_user brew --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1 || echo "0.0")
+    log_debug "Homebrew version: $brew_version"
+    
+    # Check if Homebrew is very old (< 2.0)
+    if declare -f version_compare >/dev/null 2>&1; then
+        if [[ $(version_compare "$brew_version" "2.0") -eq -1 ]]; then
+            log_warn "Very old Homebrew version detected: $brew_version"
+            log_warn "Consider updating Homebrew itself first"
+            
+            # Set compatibility environment
+            export HOMEBREW_NO_AUTO_UPDATE=1
+            export HOMEBREW_NO_ANALYTICS=1
+            export HOMEBREW_NO_GITHUB_API=1
+        fi
+    fi
+    
+    return 0
+}
+
 # Main repair function
 repair_homebrew() {
     log_info "Starting comprehensive Homebrew repair..."
     
     # Detect original user
     detect_original_user
+    
+    # Check Ruby compatibility first
+    check_ruby_compatibility
     
     # Detect Homebrew location
     if ! detect_homebrew_prefix; then
@@ -452,6 +603,9 @@ repair_homebrew() {
     
     # Ensure brew command is in PATH
     export PATH="$BREW_PREFIX/bin:$BREW_PREFIX/sbin:$PATH"
+    
+    # Handle old Homebrew versions
+    handle_old_homebrew_version
     
     # Create missing directories
     create_missing_directories
@@ -482,6 +636,9 @@ repair_homebrew() {
     
     # Fix Python
     fix_python
+    
+    # Fix Python 2 compatibility
+    fix_python2_compatibility
     
     # Final cleanup
     run_cleanup

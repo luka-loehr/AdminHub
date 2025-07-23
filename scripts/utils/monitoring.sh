@@ -95,14 +95,23 @@ get_uptime() {
 check_disk_space() {
     local available_mb=$(df / | awk 'NR==2 {print int($4/1024)}')
     local used_percent=$(df / | awk 'NR==2 {print int($5)}' | sed 's/%//')
+    local total_gb=$(df -H / | awk 'NR==2 {print $2}')
     
-    if [[ $available_mb -lt 100 ]]; then
+    # Enhanced thresholds for old systems
+    local critical_mb=500    # 500MB critical threshold
+    local warning_mb=2000    # 2GB warning threshold
+    
+    log_debug "Disk space: ${used_percent}% used, ${available_mb}MB free of $total_gb"
+    
+    if [[ $available_mb -lt $critical_mb ]]; then
         set_health_status "disk_space" "unhealthy"
-        log_warn "Low disk space: ${available_mb}MB available"
+        log_error "Critical: Low disk space - only ${available_mb}MB available (need ${critical_mb}MB minimum)"
+        generate_alerts "error" "Critical disk space: ${available_mb}MB free"
         return 1
-    elif [[ $used_percent -gt 90 ]]; then
+    elif [[ $available_mb -lt $warning_mb ]] || [[ $used_percent -gt 90 ]]; then
         set_health_status "disk_space" "degraded"
-        log_warn "High disk usage: ${used_percent}%"
+        log_warn "Low disk space: ${available_mb}MB available (${used_percent}% used)"
+        generate_alerts "warn" "Low disk space warning: ${available_mb}MB free"
         return 2
     else
         set_health_status "disk_space" "healthy"
@@ -346,6 +355,60 @@ check_guest_setup() {
     fi
 }
 
+# Function to check system age and update status
+check_system_age() {
+    log_info "Checking system age and update status..."
+    
+    local macos_version=$(sw_vers -productVersion 2>/dev/null || echo "0.0")
+    local macos_build=$(sw_vers -buildVersion 2>/dev/null || echo "unknown")
+    local major_version=$(echo "$macos_version" | cut -d. -f1)
+    local minor_version=$(echo "$macos_version" | cut -d. -f2)
+    
+    # Current macOS is 14.x (Sonoma), so anything below 12.x is old
+    if [[ $major_version -lt 11 ]] || [[ $major_version -eq 10 && $minor_version -lt 15 ]]; then
+        log_warn "Very old macOS detected: $macos_version"
+        log_warn "This system is 4+ years out of date"
+        return 2
+    elif [[ $major_version -lt 12 ]]; then
+        log_info "Older macOS detected: $macos_version"
+        return 1
+    else
+        log_info "macOS $macos_version is reasonably current"
+        return 0
+    fi
+}
+
+# Function to validate system resources
+validate_system_resources() {
+    log_info "Validating system resources..."
+    
+    local issues=0
+    
+    # Check RAM
+    local total_ram_bytes=$(sysctl -n hw.memsize 2>/dev/null || echo "0")
+    local total_ram_gb=$((total_ram_bytes / 1024 / 1024 / 1024))
+    if [[ $total_ram_gb -lt 4 ]]; then
+        log_warn "Low RAM: ${total_ram_gb}GB (recommended: 4GB+)"
+        ((issues++))
+    fi
+    
+    # Check CPU cores
+    local cpu_cores=$(sysctl -n hw.ncpu 2>/dev/null || echo "1")
+    if [[ $cpu_cores -lt 2 ]]; then
+        log_warn "Limited CPU cores: $cpu_cores"
+        ((issues++))
+    fi
+    
+    # Check swap usage (indicates memory pressure)
+    local swap_used=$(sysctl -n vm.swapusage 2>/dev/null | grep -oE 'used = [0-9.]+[MG]' | grep -oE '[0-9.]+')
+    if [[ -n "$swap_used" ]] && (( $(echo "$swap_used > 1000" | bc -l) )); then
+        log_warn "High swap usage detected: ${swap_used}M"
+        ((issues++))
+    fi
+    
+    return $issues
+}
+
 # Function to run all health checks
 run_health_checks() {
     log_info "Running AdminHub health checks..."
@@ -361,8 +424,12 @@ run_health_checks() {
     check_permissions; local perms_result=$?
     check_guest_setup; local guest_result=$?
     
-    # Calculate overall health score
-    for result in $disk_result $tools_result $agent_result $brew_result $perms_result $guest_result; do
+    # Additional checks for old systems
+    check_system_age; local age_result=$?
+    validate_system_resources; local resource_result=$?
+    
+    # Calculate overall health score (including new checks)
+    for result in $disk_result $tools_result $agent_result $brew_result $perms_result $guest_result $age_result; do
         case $result in
             0) overall_score=$((overall_score + 100)) ;;  # healthy
             2) overall_score=$((overall_score + 50)) ;;   # degraded
@@ -370,6 +437,11 @@ run_health_checks() {
         esac
         ((check_count++))
     done
+    
+    # Resource validation doesn't affect score but adds warnings
+    if [[ $resource_result -gt 0 ]]; then
+        log_info "System has $resource_result resource limitations"
+    fi
     
     local avg_score=$((overall_score / check_count))
     

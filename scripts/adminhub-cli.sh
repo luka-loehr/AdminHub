@@ -74,7 +74,7 @@ show_help() {
     echo -e "${CLI_INFO}Installation & Setup:${CLI_NC}"
     echo "  install         Install AdminHub system"
     echo "  uninstall       Remove AdminHub system"
-    echo "  update          Update AdminHub components"
+    echo "  update          Update AdminHub from GitHub repository"
     echo ""
     echo -e "${CLI_INFO}System Management:${CLI_NC}"
     echo "  status          Show system status"
@@ -102,6 +102,7 @@ show_help() {
     echo -e "${CLI_BOLD}EXAMPLES:${CLI_NC}"
     echo "  $0 install              # Install AdminHub"
     echo "  $0 status --verbose     # Show detailed status"
+    echo "  $0 update               # Update to latest version from GitHub"
     echo "  $0 health detailed      # Run detailed health check"
     echo "  $0 config show          # Show current configuration"
     echo "  $0 tools list           # List available tools"
@@ -513,24 +514,28 @@ cmd_permissions() {
 
 # Update commands
 cmd_update() {
-    require_root
+    print_info "Checking for AdminHub updates..."
     
-    print_info "Updating AdminHub..."
+    # The update script handles its own root requirements
+    local update_script="$SCRIPT_DIR/update_adminhub.sh"
+    
+    if [[ ! -f "$update_script" ]]; then
+        print_error "Update script not found: $update_script"
+        exit 1
+    fi
     
     if [[ "$DRY_RUN" == "true" ]]; then
-        print_info "Would check for updates and apply them"
+        print_info "Would run update check and installation"
         return
     fi
     
-    # Pull latest changes from git
-    if [[ -d "$SCRIPT_DIR/.git" ]]; then
-        cd "$SCRIPT_DIR"
-        git pull origin main || print_warning "Could not update from git repository"
+    # Run the update script
+    if bash "$update_script"; then
+        print_success "Update process completed"
     else
-        print_warning "Not a git repository - manual update required"
+        print_error "Update process failed"
+        exit 1
     fi
-    
-    print_success "Update completed"
 }
 
 # Monitor commands
