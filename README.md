@@ -1,186 +1,109 @@
-# AdminHub - Developer Tools for Guest Accounts 🎓
+# AdminHub
 
-**Instantly provide coding tools to Guest users on macOS**
+Automated developer tool deployment for macOS Guest accounts.
 
 [![Version](https://img.shields.io/badge/version-2.1.0-blue)](https://github.com/luka-loehr/AdminHub)
 [![macOS](https://img.shields.io/badge/macOS-10.14%2B-success)](https://support.apple.com/macos)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-## What is AdminHub? 🤔
+## Overview
 
-AdminHub lets teachers and IT admins install developer tools once, making them automatically available to all Guest users - no setup needed by students!
+AdminHub automatically provides development tools to Guest users on shared Macs. IT admins install once, students get instant access.
 
-**New in v2.1.0:** Full support for older Macs (4+ years without updates), automatic system repairs, and one-command updates from GitHub.
+**Tools included:**
+- Python 3 & Python (with pip)
+- Git
+- Homebrew
 
-## Quick Start 🚀
+## Requirements
 
-### Prerequisites
 - macOS 10.14 (Mojave) or newer
 - Admin access
 - [Homebrew](https://brew.sh) installed
 - Guest account enabled
 - 5GB free disk space
 
-### Installation (3 minutes)
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/luka-loehr/AdminHub.git
-   cd AdminHub
-   ```
-
-2. **Run installation**
-   ```bash
-   sudo ./scripts/adminhub-cli.sh install
-   ```
-
-3. **Check status**
-   ```bash
-   sudo ./scripts/adminhub-cli.sh status
-   ```
-   
-   All components should show "✅ HEALTHY"
-
-That's it! Guest users now have instant access to developer tools.
-
-## Available Tools 🛠️
-
-- **Homebrew** - Package manager
-- **Python 3 & Python** - Programming language (with pip/pip3)
-- **Git** - Version control
-
-## For Students 👨‍🎓
-
-Just log in as Guest - Terminal opens automatically with all tools ready!
+## Installation
 
 ```bash
-python3              # Start Python 3
-python               # Start Python
-git --version        # Check Git
-brew --version       # Check Homebrew
-```
+# Clone repository
+git clone https://github.com/luka-loehr/AdminHub.git
+cd AdminHub
 
-## Common Commands 📋
+# Install (includes automatic system repairs for old Macs)
+sudo ./scripts/adminhub-cli.sh install
 
-```bash
-# Check system health
+# Verify installation
 sudo ./scripts/adminhub-cli.sh status
-
-# Update to latest version
-./scripts/adminhub-cli.sh update
-
-# View logs
-./scripts/adminhub-cli.sh logs error  # Error logs
-./scripts/adminhub-cli.sh logs info   # Info logs
-./scripts/adminhub-cli.sh logs debug  # Debug logs
-
-# Monitor system health
-./scripts/adminhub-cli.sh monitor
-
-# Fix permissions
-sudo ./scripts/adminhub-cli.sh permissions fix
-
-# Uninstall
-sudo ./scripts/adminhub-cli.sh uninstall
 ```
 
-## Features ✨
+All components should show "✅ HEALTHY".
 
-- **Automatic Setup**: Tools ready instantly when Guest logs in
-- **Old Mac Support**: Works on macOS 10.14+ (Mojave and newer)
-- **Self-Healing**: Automatic repairs for common issues
-- **One-Command Updates**: Pull latest version from GitHub
-- **Comprehensive Monitoring**: Health checks and system status
-- **Clean Guest Logout**: Everything resets automatically
+## Usage
 
-## Updating AdminHub 🔄
+### For IT Admins
 
-Keep AdminHub up to date with one command:
-
+**Basic Commands**
 ```bash
-./scripts/adminhub-cli.sh update
+sudo ./scripts/adminhub-cli.sh status     # Check system health
+./scripts/adminhub-cli.sh update          # Update from GitHub
+sudo ./scripts/adminhub-cli.sh uninstall  # Remove AdminHub
 ```
 
-This will:
-- Check for updates on GitHub
-- Back up your current configuration
-- Download and apply updates
-- Rerun installation if needed
-
-## Troubleshooting 🛠️
-
-**Terminal doesn't open for Guest?**
-- Check status: `sudo ./scripts/adminhub-cli.sh status`
-- Reinstall if needed: `sudo ./scripts/adminhub-cli.sh install`
-
-**Status shows "DEGRADED"?**
-- Run with sudo: `sudo ./scripts/adminhub-cli.sh status`
-- Without sudo, some checks can't run properly
-
-**Old Mac having issues?**
-- AdminHub automatically detects and repairs common issues on older systems
-- Check compatibility: `./scripts/utils/old_mac_compatibility.sh`
-- View repair log: `./scripts/adminhub-cli.sh logs info`
-
-**Need help?**
+**Troubleshooting**
 ```bash
-./scripts/adminhub-cli.sh --help
+sudo ./scripts/adminhub-cli.sh health detailed    # Detailed diagnostics
+sudo ./scripts/adminhub-cli.sh permissions fix    # Fix permission issues
+./scripts/adminhub-cli.sh logs error              # View error logs
+./scripts/adminhub-cli.sh --help                  # Show all commands
 ```
 
-## How It Works 🔧
+### For Students
 
-1. **Compatibility Check**: Validates system requirements (macOS version, disk space, etc.)
-2. **System Repair**: Fixes common issues (certificates, Git config, permissions)
-3. **Tool Installation**: Installs to `/opt/admin-tools/`
-4. **Guest Login**: LaunchAgent automatically sets up environment
-5. **Auto-Cleanup**: Everything resets when Guest logs out
+Log in as Guest. Terminal opens automatically with all tools ready.
 
-## Advanced Usage 🔧
+## Architecture
 
-### CLI Commands
+- **Tools Location**: `/opt/admin-tools/`
+- **Configuration**: `/etc/adminhub/adminhub.conf`
+- **Logs**: `/var/log/adminhub/`
+- **LaunchAgent**: `/Library/LaunchAgents/com.adminhub.guestsetup.plist`
+
+## How It Works
+
+1. Admin installs tools to `/opt/admin-tools/`
+2. LaunchAgent activates on Guest login
+3. Tools added to Guest's PATH
+4. Everything resets on Guest logout
+
+## CLI Reference
 
 ```bash
-# Installation & Management
-adminhub install              # Install AdminHub
-adminhub uninstall            # Remove AdminHub
+# Core Commands
+adminhub install              # Install system
+adminhub uninstall            # Remove system
 adminhub update               # Update from GitHub
-
-# System Status
 adminhub status               # Quick health check
-adminhub health detailed      # Comprehensive health check
-adminhub monitor              # Continuous monitoring
+
+# Diagnostics
+adminhub health detailed      # Full system check
+adminhub logs [error|info|debug]  # View logs
+adminhub permissions fix      # Fix file permissions
 
 # Configuration
-adminhub config show          # View configuration
+adminhub config show          # View settings
 adminhub config set KEY VALUE # Change settings
-
-# Logs & Debugging
-adminhub logs error           # View error logs
-adminhub logs info            # View info logs
-adminhub logs debug           # View debug logs
-
-# Maintenance
-adminhub permissions fix      # Fix file permissions
 adminhub tools list           # List available tools
 ```
 
-### For Old Macs (4+ years without updates)
+## Support
 
-AdminHub includes special support for older systems:
+- **Installation fails**: Check prerequisites and disk space
+- **Status shows DEGRADED**: Run with sudo for full diagnostics
+- **Tools not available**: Check Guest account settings
 
-```bash
-# Check compatibility
-./scripts/utils/old_mac_compatibility.sh
-
-# Run system repairs manually
-sudo ./scripts/utils/system_repair.sh
-
-# Fix Homebrew issues
-sudo ./scripts/utils/homebrew_repair.sh
-```
-
-## License 📄
+## License
 
 MIT License - © 2025 Luka Löhr
 
-Created for Lessing-Gymnasium Karlsruhe to make coding education accessible.
+Created for Lessing-Gymnasium Karlsruhe.

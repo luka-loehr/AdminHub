@@ -79,7 +79,6 @@ show_help() {
     echo -e "${CLI_INFO}System Management:${CLI_NC}"
     echo "  status          Show system status"
     echo "  health          Run health checks"
-    echo "  monitor         Start monitoring"
     echo "  logs            View system logs"
     echo ""
     echo -e "${CLI_INFO}Configuration:${CLI_NC}"
@@ -538,23 +537,6 @@ cmd_update() {
     fi
 }
 
-# Monitor commands
-cmd_monitor() {
-    case "$SUBCOMMAND" in
-        ""|"start")
-            local interval="${OPTIONS[0]:-300}"
-            bash "$SCRIPT_DIR/utils/monitoring.sh" monitor "$interval"
-            ;;
-        "status")
-            bash "$SCRIPT_DIR/utils/monitoring.sh" status
-            ;;
-        *)
-            print_error "Unknown monitor subcommand: $SUBCOMMAND"
-            echo "Available: start [interval], status"
-            exit 1
-            ;;
-    esac
-}
 
 
 # Main command dispatcher
@@ -580,7 +562,6 @@ main() {
         logs)        cmd_logs ;;
         permissions) cmd_permissions ;;
         update)      cmd_update ;;
-        monitor)     cmd_monitor ;;
         *)
             print_error "Unknown command: $COMMAND"
             echo "Use '$0 --help' for usage information."
