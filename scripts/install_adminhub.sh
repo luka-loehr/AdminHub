@@ -38,11 +38,33 @@ fi
 # Fix permissions
 ./scripts/utils/fix_homebrew_permissions.sh
 
+# Verify symlinks are created correctly
+echo ""
+echo "🔍 Verifying installation..."
+VERIFY_FAILED=false
+
+# Check critical symlinks
+for tool in brew python python3 pip pip3 git; do
+    if [ -L "/opt/admin-tools/bin/$tool" ] && [ -e "/opt/admin-tools/bin/$tool" ]; then
+        echo "   ✅ $tool: OK"
+    elif [ -e "/opt/admin-tools/bin/$tool" ]; then
+        echo "   ⚠️  $tool: exists but may need fixing"
+    else
+        echo "   ❌ $tool: missing"
+        VERIFY_FAILED=true
+    fi
+done
+
 # Note: LaunchAgent installation is now handled by setup_guest_shell_init.sh
 # Run this script for permission-free guest setup
 
 echo ""
-echo "✅ Installation completed!"
+if [ "$VERIFY_FAILED" = true ]; then
+    echo "⚠️  Installation completed with warnings. Some tools may need manual configuration."
+    echo "   Run 'sudo ./scripts/adminhub-cli.sh status' to check system health."
+else
+    echo "✅ Installation completed successfully!"
+fi
 echo ""
 
 # Set up PATH for current user (not Guest)

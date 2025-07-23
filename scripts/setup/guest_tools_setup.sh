@@ -201,12 +201,32 @@ INSTALLEOF
             
             if [ -e "$source" ]; then
                 ln -sf "$source" "$target" 2>/dev/null
+                echo "   ✓ Created symlink: $(basename "$target") -> $source"
             fi
         }
         
-        # Create symlink for brew
-        if command -v brew &> /dev/null; then
-            create_symlink "$(which brew)" "$ADMIN_TOOLS_DIR/bin/brew"
+        echo ""
+        echo "🔗 Creating tool symlinks..."
+        
+        # Detect Homebrew location
+        BREW_PREFIX=""
+        if [ -x "/opt/homebrew/bin/brew" ]; then
+            BREW_PREFIX="/opt/homebrew"
+        elif [ -x "/usr/local/bin/brew" ]; then
+            BREW_PREFIX="/usr/local"
+        elif [ -x "/usr/local/Homebrew/bin/brew" ]; then
+            # Special case for older installations
+            BREW_PREFIX="/usr/local/Homebrew"
+        fi
+        
+        # Create symlink for brew (use detected location, not 'which')
+        if [ -n "$BREW_PREFIX" ]; then
+            if [ -x "$BREW_PREFIX/bin/brew" ]; then
+                create_symlink "$BREW_PREFIX/bin/brew" "$ADMIN_TOOLS_DIR/bin/brew"
+            elif [ -x "/usr/local/Homebrew/bin/brew" ]; then
+                # Handle case where Homebrew is in /usr/local/Homebrew
+                create_symlink "/usr/local/Homebrew/bin/brew" "$ADMIN_TOOLS_DIR/bin/brew"
+            fi
         fi
         
         # Find the correct paths and create symlinks
@@ -218,24 +238,55 @@ INSTALLEOF
             fi
         fi
         
-        # Link python and pip (not just python3)
-        # Check for python in libexec first (Homebrew's unversioned symlinks)
-        if [ -e "/opt/homebrew/opt/python@3.13/libexec/bin/python" ]; then
-            create_symlink "/opt/homebrew/opt/python@3.13/libexec/bin/python" "$ADMIN_TOOLS_DIR/bin/python"
-            create_symlink "/opt/homebrew/opt/python@3.13/libexec/bin/pip" "$ADMIN_TOOLS_DIR/bin/pip"
-        elif [ -e "/opt/homebrew/opt/python@3.12/libexec/bin/python" ]; then
-            create_symlink "/opt/homebrew/opt/python@3.12/libexec/bin/python" "$ADMIN_TOOLS_DIR/bin/python"
-            create_symlink "/opt/homebrew/opt/python@3.12/libexec/bin/pip" "$ADMIN_TOOLS_DIR/bin/pip"
-        elif command -v python &> /dev/null; then
-            create_symlink "$(which python)" "$ADMIN_TOOLS_DIR/bin/python"
-            if command -v pip &> /dev/null; then
-                create_symlink "$(which pip)" "$ADMIN_TOOLS_DIR/bin/pip"
+        # Link python and pip (not just python3) - check multiple Python versions
+        PYTHON_LINKED=false
+        for VERSION in 3.13 3.12 3.11 3.10; do
+            # Check both common Homebrew locations
+            for PREFIX in "/opt/homebrew" "/usr/local"; do
+                PYTHON_LIBEXEC="$PREFIX/opt/python@$VERSION/libexec/bin"
+                if [ -e "$PYTHON_LIBEXEC/python" ]; then
+                    create_symlink "$PYTHON_LIBEXEC/python" "$ADMIN_TOOLS_DIR/bin/python"
+                    create_symlink "$PYTHON_LIBEXEC/pip" "$ADMIN_TOOLS_DIR/bin/pip"
+                    PYTHON_LINKED=true
+                    break 2
+                fi
+            done
+        done
+        
+        # Fallback if no libexec Python found
+        if [ "$PYTHON_LINKED" = false ]; then
+            if command -v python &> /dev/null; then
+                create_symlink "$(which python)" "$ADMIN_TOOLS_DIR/bin/python"
+                if command -v pip &> /dev/null; then
+                    create_symlink "$(which pip)" "$ADMIN_TOOLS_DIR/bin/pip"
+                fi
+            else
+                # Last resort: link python3 to python
+                if [ -e "$ADMIN_TOOLS_DIR/bin/python3" ]; then
+                    create_symlink "$ADMIN_TOOLS_DIR/bin/python3" "$ADMIN_TOOLS_DIR/bin/python"
+                fi
+                if [ -e "$ADMIN_TOOLS_DIR/bin/pip3" ]; then
+                    create_symlink "$ADMIN_TOOLS_DIR/bin/pip3" "$ADMIN_TOOLS_DIR/bin/pip"
+                fi
             fi
         fi
         
         if command -v git &> /dev/null; then
             create_symlink "$(which git)" "$ADMIN_TOOLS_DIR/bin/git"
         fi
+        
+        # Verify symlinks
+        echo ""
+        echo "🔍 Verifying symlinks..."
+        for tool in brew python python3 pip pip3 git; do
+            if [ -L "$ADMIN_TOOLS_DIR/bin/$tool" ] && [ -e "$ADMIN_TOOLS_DIR/bin/$tool" ]; then
+                echo "   ✅ $tool: OK"
+            elif [ -e "$ADMIN_TOOLS_DIR/bin/$tool" ]; then
+                echo "   ⚠️  $tool: exists but not a symlink"
+            else
+                echo "   ❌ $tool: missing"
+            fi
+        done
         
         # Set permissions
         chmod -R 755 "$ADMIN_TOOLS_DIR"

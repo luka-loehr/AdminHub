@@ -64,7 +64,7 @@ get_tool_version_cmd() {
 
 get_tool_test_cmd() {
     case "$1" in
-        "brew") echo "--version > /dev/null 2>&1" ;;
+        "brew") echo "--version" ;;
         "python3") echo "-c 'print(\"OK\")'" ;;
         "python") echo "-c 'print(\"OK\")'" ;;
         "git") echo "--version > /dev/null 2>&1" ;;

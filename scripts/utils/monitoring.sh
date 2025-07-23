@@ -226,25 +226,43 @@ check_homebrew() {
         return 0
     fi
     
-    # If brew doctor had output, analyze the warnings
-    if [[ $doctor_exit_code -eq 1 ]]; then
-        # Check if it's just benign warnings (like unbrewed headers)
-        if echo "$doctor_output" | grep -q "Unbrewed header files" && 
-           ! echo "$doctor_output" | grep -qE "(Error:|Failed|broken|corrupted|permission denied)"; then
-            set_health_status "homebrew" "healthy"
-            log_debug "Homebrew has benign warnings (unbrewed headers)"
-            return 0
-        else
-            set_health_status "homebrew" "degraded"
-            log_warn "Homebrew has warnings"
-            return 2
-        fi
-    else
-        # brew doctor completely failed
+    # Define error keywords that indicate actual problems
+    local error_keywords="Error:|Failed|broken|corrupted|permission denied|cannot be found|missing|fatal|critical"
+    
+    # Check if output contains actual errors
+    if echo "$doctor_output" | grep -qE "$error_keywords"; then
         set_health_status "homebrew" "unhealthy"
-        log_error "Homebrew doctor failed"
+        log_error "Homebrew has critical errors"
+        log_debug "Brew doctor output: $doctor_output"
         return 1
     fi
+    
+    # If brew doctor returned non-zero but no critical errors found
+    if [[ $doctor_exit_code -ne 0 ]]; then
+        # Common benign warnings to ignore
+        local benign_warnings="Unbrewed header files|Unbrewed .pc files|Unbrewed static libraries|Warning: Some installed formulae|Warning: You have unlinked kegs|Warning: Homebrew's \"sbin\" was not found"
+        
+        # Count warnings vs errors
+        local warning_count=$(echo "$doctor_output" | grep -c "Warning:" || true)
+        local error_count=$(echo "$doctor_output" | grep -cE "$error_keywords" || true)
+        
+        # If only warnings and they're known benign ones
+        if [[ $error_count -eq 0 ]] && echo "$doctor_output" | grep -qE "$benign_warnings"; then
+            set_health_status "homebrew" "healthy"
+            log_debug "Homebrew has only benign warnings"
+            return 0
+        fi
+        
+        # Otherwise treat as degraded
+        set_health_status "homebrew" "degraded"
+        log_warn "Homebrew has warnings (exit code: $doctor_exit_code)"
+        log_debug "Warning count: $warning_count, Error count: $error_count"
+        return 2
+    fi
+    
+    # If we get here, brew doctor succeeded with no output
+    set_health_status "homebrew" "healthy"
+    return 0
 }
 
 # Function to check permissions
