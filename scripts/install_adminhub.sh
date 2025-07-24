@@ -105,6 +105,82 @@ echo ""
 echo "🔒 Setting up security wrappers..."
 ./scripts/utils/guest_security_wrapper.sh
 
+# Step 6b: Fix brew wrapper if needed (temporary fix until wrapper script is updated)
+echo ""
+echo "🔧 Ensuring wrappers use dynamic path detection..."
+if [ -f "/opt/admin-tools/wrappers/brew" ]; then
+    # Check if brew wrapper has the old hardcoded path
+    if grep -q "ACTUAL_BREW=\"/opt/admin-tools/actual/bin/brew\"" "/opt/admin-tools/wrappers/brew" 2>/dev/null; then
+        echo "   Updating brew wrapper with dynamic detection..."
+        cat > /opt/admin-tools/wrappers/brew << 'EOF'
+#!/bin/bash
+# Homebrew wrapper for Guest users - blocks system modifications
+
+# Find the actual brew executable
+find_actual_brew() {
+    # First check if we have a direct symlink
+    if [ -L "/opt/admin-tools/actual/bin/brew" ]; then
+        local target=$(readlink "/opt/admin-tools/actual/bin/brew")
+        if [ -x "$target" ]; then
+            echo "$target"
+            return
+        fi
+    fi
+    
+    # Otherwise search for brew in common locations
+    local brew_locations=(
+        "/opt/homebrew/bin/brew"
+        "/usr/local/bin/brew"
+        "/usr/local/Homebrew/bin/brew"
+        "/home/linuxbrew/.linuxbrew/bin/brew"
+    )
+    
+    for location in "${brew_locations[@]}"; do
+        if [ -x "$location" ]; then
+            echo "$location"
+            return
+        fi
+    done
+    
+    # Fallback to which
+    which brew 2>/dev/null || echo ""
+}
+
+ACTUAL_BREW=$(find_actual_brew)
+
+if [ -z "$ACTUAL_BREW" ]; then
+    echo "❌ Error: Homebrew not found"
+    exit 1
+fi
+
+# Check if running as Guest
+if [[ "$USER" == "Guest" ]]; then
+    # Block dangerous commands
+    case "$1" in
+        install|uninstall|upgrade|update|tap|untap|link|unlink|pin|unpin)
+            echo "❌ Error: System-wide modifications are not allowed for Guest users"
+            echo "   Command '$1' has been blocked for security reasons"
+            exit 1
+            ;;
+        reinstall|remove|rm|cleanup)
+            echo "❌ Error: System-wide modifications are not allowed for Guest users"
+            echo "   Command '$1' has been blocked for security reasons"
+            exit 1
+            ;;
+        *)
+            # Allow safe read-only commands
+            exec "$ACTUAL_BREW" "$@"
+            ;;
+    esac
+else
+    # Non-guest users get full access
+    exec "$ACTUAL_BREW" "$@"
+fi
+EOF
+        chmod 755 /opt/admin-tools/wrappers/brew
+    fi
+fi
+
 # Step 7: Fix permissions
 echo ""
 echo "🔐 Fixing permissions..."
