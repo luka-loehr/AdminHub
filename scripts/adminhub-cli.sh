@@ -528,8 +528,14 @@ cmd_update() {
     fi
     
     # Run the update script
-    if bash "$update_script"; then
+    bash "$update_script"
+    local update_result=$?
+    
+    if [[ $update_result -eq 0 ]]; then
         print_success "Update process completed"
+    elif [[ $update_result -eq 2 ]]; then
+        # Exit code 2 means already up to date
+        print_success "AdminHub is already up to date!"
     else
         print_error "Update process failed"
         exit 1

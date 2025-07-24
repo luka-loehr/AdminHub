@@ -210,8 +210,8 @@ run_update() {
         echo -n "Already up to date. Re-run installation anyway? (y/N): "
         read -r response
         if [[ ! "$response" =~ ^[yY]$ ]]; then
-            log_info "Update cancelled"
-            return 0
+            log_info "No update needed"
+            return 2  # Return 2 to indicate "already up to date"
         fi
     fi
     
