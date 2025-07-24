@@ -256,7 +256,7 @@ check_homebrew() {
     # If brew doctor returned non-zero but no critical errors found
     if [[ $doctor_exit_code -ne 0 ]]; then
         # Common benign warnings to ignore
-        local benign_warnings="Unbrewed header files|Unbrewed .pc files|Unbrewed static libraries|Warning: Some installed formulae|Warning: You have unlinked kegs|Warning: Homebrew's \"sbin\" was not found"
+        local benign_warnings="Unbrewed header files|Unbrewed .pc files|Unbrewed static libraries|Warning: Some installed formulae|Warning: You have unlinked kegs|Warning: Homebrew's \"sbin\" was not found|Warning: A newer Command Line Tools|Warning: Your Command Line Tools|Tier 2 configuration"
         
         # Count warnings vs errors
         local warning_count=$(echo "$doctor_output" | grep -c "Warning:" || true)
