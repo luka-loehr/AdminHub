@@ -33,7 +33,42 @@ create_brew_wrapper() {
 #!/bin/bash
 # Homebrew wrapper for Guest users - blocks system modifications
 
-ACTUAL_BREW="/opt/admin-tools/actual/bin/brew"
+# Find the actual brew executable
+find_actual_brew() {
+    # First check if we have a direct symlink
+    if [ -L "/opt/admin-tools/actual/bin/brew" ]; then
+        local target=$(readlink "/opt/admin-tools/actual/bin/brew")
+        if [ -x "$target" ]; then
+            echo "$target"
+            return
+        fi
+    fi
+    
+    # Otherwise search for brew in common locations
+    local brew_locations=(
+        "/opt/homebrew/bin/brew"
+        "/usr/local/bin/brew"
+        "/usr/local/Homebrew/bin/brew"
+        "/home/linuxbrew/.linuxbrew/bin/brew"
+    )
+    
+    for location in "${brew_locations[@]}"; do
+        if [ -x "$location" ]; then
+            echo "$location"
+            return
+        fi
+    done
+    
+    # Fallback to which
+    which brew 2>/dev/null || echo ""
+}
+
+ACTUAL_BREW=$(find_actual_brew)
+
+if [ -z "$ACTUAL_BREW" ]; then
+    echo "❌ Error: Homebrew not found"
+    exit 1
+fi
 
 # Check if running as Guest
 if [[ "$USER" == "Guest" ]]; then
@@ -72,7 +107,55 @@ create_python_wrapper() {
 #!/bin/bash
 # Python wrapper for Guest users
 
-ACTUAL_PYTHON="/opt/admin-tools/actual/bin/python"
+# Find the actual python executable
+find_actual_python() {
+    # First check if we have a direct symlink
+    if [ -L "/opt/admin-tools/actual/bin/python" ]; then
+        local target=$(readlink "/opt/admin-tools/actual/bin/python")
+        if [ -x "$target" ]; then
+            echo "$target"
+            return
+        fi
+    fi
+    
+    # Fallback to python3 if python doesn't exist
+    if [ -L "/opt/admin-tools/actual/bin/python3" ]; then
+        local target=$(readlink "/opt/admin-tools/actual/bin/python3")
+        if [ -x "$target" ]; then
+            echo "$target"
+            return
+        fi
+    fi
+    
+    # Otherwise search in common locations
+    local python_locations=(
+        "/opt/homebrew/opt/python@3.13/libexec/bin/python"
+        "/opt/homebrew/opt/python@3.12/libexec/bin/python"
+        "/opt/homebrew/opt/python@3.11/libexec/bin/python"
+        "/usr/local/opt/python@3.13/libexec/bin/python"
+        "/usr/local/opt/python@3.12/libexec/bin/python"
+        "/usr/local/opt/python@3.11/libexec/bin/python"
+        "/opt/homebrew/bin/python3"
+        "/usr/local/bin/python3"
+    )
+    
+    for location in "${python_locations[@]}"; do
+        if [ -x "$location" ]; then
+            echo "$location"
+            return
+        fi
+    done
+    
+    # Fallback to which
+    which python3 2>/dev/null || which python 2>/dev/null || echo ""
+}
+
+ACTUAL_PYTHON=$(find_actual_python)
+
+if [ -z "$ACTUAL_PYTHON" ]; then
+    echo "❌ Error: Python not found"
+    exit 1
+fi
 
 # Set secure environment for Guest
 if [[ "$USER" == "Guest" ]]; then
@@ -97,7 +180,55 @@ EOF
 #!/bin/bash
 # Pip wrapper for Guest users - forces user installations
 
-ACTUAL_PIP="/opt/admin-tools/actual/bin/pip"
+# Find the actual pip executable
+find_actual_pip() {
+    # First check if we have a direct symlink
+    if [ -L "/opt/admin-tools/actual/bin/pip" ]; then
+        local target=$(readlink "/opt/admin-tools/actual/bin/pip")
+        if [ -x "$target" ]; then
+            echo "$target"
+            return
+        fi
+    fi
+    
+    # Fallback to pip3 if pip doesn't exist
+    if [ -L "/opt/admin-tools/actual/bin/pip3" ]; then
+        local target=$(readlink "/opt/admin-tools/actual/bin/pip3")
+        if [ -x "$target" ]; then
+            echo "$target"
+            return
+        fi
+    fi
+    
+    # Otherwise search in common locations
+    local pip_locations=(
+        "/opt/homebrew/opt/python@3.13/libexec/bin/pip"
+        "/opt/homebrew/opt/python@3.12/libexec/bin/pip"
+        "/opt/homebrew/opt/python@3.11/libexec/bin/pip"
+        "/usr/local/opt/python@3.13/libexec/bin/pip"
+        "/usr/local/opt/python@3.12/libexec/bin/pip"
+        "/usr/local/opt/python@3.11/libexec/bin/pip"
+        "/opt/homebrew/bin/pip3"
+        "/usr/local/bin/pip3"
+    )
+    
+    for location in "${pip_locations[@]}"; do
+        if [ -x "$location" ]; then
+            echo "$location"
+            return
+        fi
+    done
+    
+    # Fallback to which
+    which pip3 2>/dev/null || which pip 2>/dev/null || echo ""
+}
+
+ACTUAL_PIP=$(find_actual_pip)
+
+if [ -z "$ACTUAL_PIP" ]; then
+    echo "❌ Error: pip not found"
+    exit 1
+fi
 
 # Check if running as Guest
 if [[ "$USER" == "Guest" ]]; then
@@ -150,7 +281,27 @@ create_git_wrapper() {
 #!/bin/bash
 # Git wrapper for Guest users - prevents system config changes
 
-ACTUAL_GIT="/opt/admin-tools/actual/bin/git"
+# Find the actual git executable
+find_actual_git() {
+    # First check if we have a direct symlink
+    if [ -L "/opt/admin-tools/actual/bin/git" ]; then
+        local target=$(readlink "/opt/admin-tools/actual/bin/git")
+        if [ -x "$target" ]; then
+            echo "$target"
+            return
+        fi
+    fi
+    
+    # Otherwise use which to find git
+    which git 2>/dev/null || echo ""
+}
+
+ACTUAL_GIT=$(find_actual_git)
+
+if [ -z "$ACTUAL_GIT" ]; then
+    echo "❌ Error: Git not found"
+    exit 1
+fi
 
 # Check if running as Guest
 if [[ "$USER" == "Guest" ]]; then

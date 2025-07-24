@@ -55,9 +55,40 @@ if ! command -v brew &> /dev/null; then
     exit 1
 fi
 
+# Check Command Line Tools (optional warning)
+if command -v xcode-select &> /dev/null; then
+    CLT_VERSION=$(xcode-select --version 2>/dev/null | grep -oE '[0-9]+' | head -1 || echo "0")
+    if [ "$CLT_VERSION" -lt 2395 ]; then
+        echo ""
+        echo "⚠️  Outdated Command Line Tools detected"
+        echo "   Consider updating via Software Update or:"
+        echo "   sudo rm -rf /Library/Developer/CommandLineTools"
+        echo "   sudo xcode-select --install"
+        echo ""
+        echo "   Continuing with installation..."
+    fi
+fi
+
 # Step 4: Fix Homebrew issues on older Macs
 echo ""
 echo "🍺 Repairing Homebrew..."
+
+# First, ensure Homebrew path is correct
+BREW_PATH=$(which brew 2>/dev/null || echo "")
+if [ -n "$BREW_PATH" ]; then
+    # Check if brew command actually works
+    if ! brew --version &>/dev/null; then
+        echo "⚠️  Homebrew command found but not working properly"
+        
+        # Try to fix common issues
+        if [ -d "/usr/local/Homebrew" ] && [ ! -d "/usr/local/Library" ]; then
+            echo "   Detected non-standard Homebrew installation"
+            # Create symlink for Library if needed
+            ln -s "/usr/local/Homebrew/Library" "/usr/local/Library" 2>/dev/null || true
+        fi
+    fi
+fi
+
 if ./scripts/utils/homebrew_repair.sh; then
     echo "✅ Homebrew repair completed"
 else

@@ -208,25 +208,40 @@ INSTALLEOF
         echo ""
         echo "🔗 Creating tool symlinks..."
         
-        # Detect Homebrew location
+        # Detect Homebrew location - handle various installation layouts
         BREW_PREFIX=""
+        BREW_BIN=""
+        
+        # Check standard locations first
         if [ -x "/opt/homebrew/bin/brew" ]; then
             BREW_PREFIX="/opt/homebrew"
+            BREW_BIN="/opt/homebrew/bin/brew"
         elif [ -x "/usr/local/bin/brew" ]; then
-            BREW_PREFIX="/usr/local"
+            # Check if this is a wrapper script or actual brew
+            if grep -q "HOMEBREW_PREFIX" "/usr/local/bin/brew" 2>/dev/null; then
+                # It's the wrapper, actual Homebrew might be elsewhere
+                BREW_PREFIX="/usr/local"
+                BREW_BIN="/usr/local/bin/brew"
+                
+                # Check for Homebrew in non-standard location
+                if [ -d "/usr/local/Homebrew" ]; then
+                    BREW_PREFIX="/usr/local/Homebrew"
+                fi
+            else
+                BREW_PREFIX="/usr/local"
+                BREW_BIN="/usr/local/bin/brew"
+            fi
         elif [ -x "/usr/local/Homebrew/bin/brew" ]; then
-            # Special case for older installations
+            # Non-standard location
             BREW_PREFIX="/usr/local/Homebrew"
+            BREW_BIN="/usr/local/Homebrew/bin/brew"
         fi
         
-        # Create symlink for brew (use detected location, not 'which')
-        if [ -n "$BREW_PREFIX" ]; then
-            if [ -x "$BREW_PREFIX/bin/brew" ]; then
-                create_symlink "$BREW_PREFIX/bin/brew" "$ADMIN_TOOLS_DIR/bin/brew"
-            elif [ -x "/usr/local/Homebrew/bin/brew" ]; then
-                # Handle case where Homebrew is in /usr/local/Homebrew
-                create_symlink "/usr/local/Homebrew/bin/brew" "$ADMIN_TOOLS_DIR/bin/brew"
-            fi
+        # Create symlink for brew
+        if [ -n "$BREW_BIN" ]; then
+            create_symlink "$BREW_BIN" "$ADMIN_TOOLS_DIR/bin/brew"
+        else
+            echo "   ⚠️  Could not find brew executable"
         fi
         
         # Find the correct paths and create symlinks
