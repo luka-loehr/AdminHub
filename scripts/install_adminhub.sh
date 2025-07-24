@@ -203,8 +203,10 @@ for tool in brew python python3 pip pip3 git; do
     fi
 done
 
-# Note: LaunchAgent installation is now handled by setup_guest_shell_init.sh
-# Run this script for permission-free guest setup
+# Step 8: Install LaunchAgent and guest setup scripts
+echo ""
+echo "🚀 Installing LaunchAgent and guest setup scripts..."
+./scripts/setup/setup_guest_shell_init.sh
 
 echo ""
 if [ "$VERIFY_FAILED" = true ]; then

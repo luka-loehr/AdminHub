@@ -425,8 +425,12 @@ fix_python() {
         return 1
     fi
     
-    # Use the latest version
-    local latest_python="${python_versions[-1]}"
+    # Use the latest version (Bash 3.2 compatible)
+    local latest_python=""
+    local array_length=${#python_versions[@]}
+    if [[ $array_length -gt 0 ]]; then
+        latest_python="${python_versions[$((array_length - 1))]}"
+    fi
     log_debug "Latest Python formula: $latest_python"
     
     # Get Python version number
