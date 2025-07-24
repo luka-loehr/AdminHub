@@ -215,8 +215,15 @@ check_homebrew() {
         fi
         
         if [[ -n "$actual_user" && "$actual_user" != "root" ]]; then
-            # Run brew doctor as the actual user
-            doctor_output=$(su - "$actual_user" -c "brew doctor 2>&1")
+            # Run brew doctor as the actual user with proper PATH
+            # First, find brew location
+            local brew_path=$(which brew 2>/dev/null || echo "/usr/local/bin/brew")
+            if [[ ! -x "$brew_path" ]]; then
+                brew_path="/opt/homebrew/bin/brew"
+            fi
+            
+            # Run with full path to avoid PATH issues
+            doctor_output=$(su - "$actual_user" -c "$brew_path doctor 2>&1")
             doctor_exit_code=$?
         else
             # Fallback to running directly (will show warning)
