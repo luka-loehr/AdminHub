@@ -59,8 +59,11 @@ if [[ ! -d "$GUEST_TOOLS_DIR/bin" ]]; then
         exit 1
     }
     
-    # Set PATH
-    export PATH="$GUEST_TOOLS_DIR/bin:$PATH"
+    # Set PATH - include official Python directory and user pip packages
+    export PATH="$GUEST_TOOLS_DIR/bin:/Library/Frameworks/Python.framework/Versions/3.13/bin:$PATH"
+    
+    # Add user pip install directory to PATH
+    export PATH="$HOME/.local/bin:$PATH"
     
     # Apply security environment for Guest
     if [ -f "/opt/admin-tools/wrappers/guest_security_env.sh" ]; then
@@ -81,8 +84,11 @@ if [[ ! -d "$GUEST_TOOLS_DIR/bin" ]]; then
     echo "Happy coding! 🎉"
     echo ""
 else
-    # Tools already set up, just set PATH
-    export PATH="$GUEST_TOOLS_DIR/bin:$PATH"
+    # Tools already set up, just set PATH - include official Python directory and user pip packages
+    export PATH="$GUEST_TOOLS_DIR/bin:/Library/Frameworks/Python.framework/Versions/3.13/bin:$PATH"
+    
+    # Add user pip install directory to PATH
+    export PATH="$HOME/.local/bin:$PATH"
     
     # Show welcome message only once per session
     if [[ "$ADMINHUB_WELCOME_SHOWN" != "true" ]]; then

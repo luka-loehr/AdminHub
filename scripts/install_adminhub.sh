@@ -95,17 +95,28 @@ else
     echo "⚠️  Homebrew repair encountered issues, but continuing with installation..."
 fi
 
-# Step 5: Run main setup
+# Step 5: Install official Python first
+echo ""
+echo "🐍 Installing official Python..."
+if ./scripts/utils/install_official_python.sh; then
+    echo "✅ Official Python installed successfully"
+else
+    echo "❌ Failed to install official Python"
+    echo "Please install Python manually from python.org"
+    exit 1
+fi
+
+# Step 6: Run main setup
 echo ""
 echo "📦 Installing AdminHub tools..."
 ./scripts/setup/guest_tools_setup.sh
 
-# Step 6: Setup security wrappers
+# Step 7: Setup security wrappers
 echo ""
 echo "🔒 Setting up security wrappers..."
 ./scripts/utils/guest_security_wrapper.sh
 
-# Step 6b: Fix brew wrapper if needed (temporary fix until wrapper script is updated)
+# Step 7b: Fix brew wrapper if needed (temporary fix until wrapper script is updated)
 echo ""
 echo "🔧 Ensuring wrappers use dynamic path detection..."
 if [ -f "/opt/admin-tools/wrappers/brew" ]; then
@@ -181,10 +192,15 @@ EOF
     fi
 fi
 
-# Step 7: Fix permissions
+# Step 8: Fix permissions
 echo ""
 echo "🔐 Fixing permissions..."
 ./scripts/utils/fix_homebrew_permissions.sh
+
+# Step 8b: Setup pip configuration
+echo ""
+echo "🐍 Setting up pip configuration..."
+./scripts/utils/setup_pip_config.sh
 
 # Verify symlinks are created correctly
 echo ""
@@ -203,7 +219,7 @@ for tool in brew python python3 pip pip3 git; do
     fi
 done
 
-# Step 8: Install LaunchAgent and guest setup scripts
+# Step 9: Install LaunchAgent and guest setup scripts
 echo ""
 echo "🚀 Installing LaunchAgent and guest setup scripts..."
 ./scripts/setup/setup_guest_shell_init.sh
@@ -224,7 +240,7 @@ ORIGINAL_USER=$(who am i | awk '{print $1}')
 USER_HOME=$(eval echo ~$ORIGINAL_USER)
 
 # Add PATH for current session
-export PATH="/opt/admin-tools/bin:$PATH"
+export PATH="/opt/admin-tools/bin:/Library/Frameworks/Python.framework/Versions/3.13/bin:$PATH"
 
 # Update shell configuration files
 if [ -f "$USER_HOME/.zshrc" ]; then
@@ -232,7 +248,7 @@ if [ -f "$USER_HOME/.zshrc" ]; then
     if ! grep -q "/opt/admin-tools/bin" "$USER_HOME/.zshrc"; then
         echo "" >> "$USER_HOME/.zshrc"
         echo "# AdminHub Tools" >> "$USER_HOME/.zshrc"
-        echo "export PATH=\"/opt/admin-tools/bin:\$PATH\"" >> "$USER_HOME/.zshrc"
+        echo "export PATH=\"/opt/admin-tools/bin:/Library/Frameworks/Python.framework/Versions/3.13/bin:\$PATH\"" >> "$USER_HOME/.zshrc"
     fi
 fi
 
@@ -241,7 +257,7 @@ if [ -f "$USER_HOME/.bash_profile" ]; then
     if ! grep -q "/opt/admin-tools/bin" "$USER_HOME/.bash_profile"; then
         echo "" >> "$USER_HOME/.bash_profile"
         echo "# AdminHub Tools" >> "$USER_HOME/.bash_profile"
-        echo "export PATH=\"/opt/admin-tools/bin:\$PATH\"" >> "$USER_HOME/.bash_profile"
+        echo "export PATH=\"/opt/admin-tools/bin:/Library/Frameworks/Python.framework/Versions/3.13/bin:\$PATH\"" >> "$USER_HOME/.bash_profile"
     fi
 fi
 

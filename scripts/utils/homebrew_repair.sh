@@ -404,81 +404,28 @@ install_missing_dependencies() {
 
 # Fix Python installation and create unversioned symlinks
 fix_python() {
-    log_info "Fixing Python installation and symlinks..."
+    log_info "Checking Python installation..."
     
-    # First ensure Python is installed
-    if ! run_as_user brew list python@3 &>/dev/null && ! run_as_user brew list python &>/dev/null; then
-        log_debug "Installing Python..."
-        run_as_user brew install python@3 2>/dev/null || \
-            run_as_user brew install python 2>/dev/null || \
-            log_error "Could not install Python"
-    fi
-    
-    # Find the latest Python version installed
-    local python_versions=()
-    while IFS= read -r version; do
-        python_versions+=("$version")
-    done < <(run_as_user brew list | grep -E '^python(@[0-9.]+)?$' | sort -V)
-    
-    if [[ ${#python_versions[@]} -eq 0 ]]; then
-        log_error "No Python installation found"
-        return 1
-    fi
-    
-    # Use the latest version (Bash 3.2 compatible)
-    local latest_python=""
-    local array_length=${#python_versions[@]}
-    if [[ $array_length -gt 0 ]]; then
-        latest_python="${python_versions[$((array_length - 1))]}"
-    fi
-    log_debug "Latest Python formula: $latest_python"
-    
-    # Get Python version number
-    if [[ "$latest_python" =~ python@([0-9]+\.[0-9]+) ]]; then
-        PYTHON_VERSION="${BASH_REMATCH[1]}"
-    else
-        # Try to get version from python executable
-        PYTHON_VERSION=$(run_as_user "$BREW_PREFIX/bin/python3" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+') || "3.12"
-    fi
-    
-    log_debug "Python version: $PYTHON_VERSION"
-    
-    # Find libexec directory
-    PYTHON_LIBEXEC_DIR="$BREW_PREFIX/opt/$latest_python/libexec/bin"
-    if [[ ! -d "$PYTHON_LIBEXEC_DIR" ]]; then
-        PYTHON_LIBEXEC_DIR="$BREW_PREFIX/opt/python@$PYTHON_VERSION/libexec/bin"
-    fi
-    if [[ ! -d "$PYTHON_LIBEXEC_DIR" ]]; then
-        PYTHON_LIBEXEC_DIR="$BREW_PREFIX/opt/python/libexec/bin"
-    fi
-    
-    log_debug "Python libexec directory: $PYTHON_LIBEXEC_DIR"
-    
-    # Create unversioned symlinks
-    if [[ -d "$PYTHON_LIBEXEC_DIR" ]]; then
-        # Remove old/broken Python symlinks first
+    # Check if official Python is installed
+    local official_python_path="/Library/Frameworks/Python.framework/Versions/3.13/bin/python3"
+    if [[ -x "$official_python_path" ]]; then
+        log_info "Official Python is installed at $official_python_path"
+        PYTHON_VERSION="3.13"
+        PYTHON_LIBEXEC_DIR="/Library/Frameworks/Python.framework/Versions/3.13/bin"
+        
+        # Remove any Homebrew Python symlinks that might conflict
         rm -f "$BREW_PREFIX/bin/python" 2>/dev/null || true
         rm -f "$BREW_PREFIX/bin/pip" 2>/dev/null || true
+        rm -f "$BREW_PREFIX/bin/python3" 2>/dev/null || true
+        rm -f "$BREW_PREFIX/bin/pip3" 2>/dev/null || true
         
-        # Create new symlinks
-        if [[ -x "$PYTHON_LIBEXEC_DIR/python" ]]; then
-            ln -sf "$PYTHON_LIBEXEC_DIR/python" "$BREW_PREFIX/bin/python" 2>/dev/null || \
-                log_debug "Could not create python symlink"
-        fi
-        
-        if [[ -x "$PYTHON_LIBEXEC_DIR/pip" ]]; then
-            ln -sf "$PYTHON_LIBEXEC_DIR/pip" "$BREW_PREFIX/bin/pip" 2>/dev/null || \
-                log_debug "Could not create pip symlink"
-        fi
-    else
-        # Fallback: create symlinks to versioned commands
-        if [[ -x "$BREW_PREFIX/bin/python3" ]]; then
-            ln -sf "$BREW_PREFIX/bin/python3" "$BREW_PREFIX/bin/python" 2>/dev/null || true
-        fi
-        if [[ -x "$BREW_PREFIX/bin/pip3" ]]; then
-            ln -sf "$BREW_PREFIX/bin/pip3" "$BREW_PREFIX/bin/pip" 2>/dev/null || true
-        fi
+        log_info "Removed Homebrew Python symlinks to avoid conflicts with official Python"
+        return 0
     fi
+    
+    # If official Python is not installed, log a message
+    log_warn "Official Python not found. Python should be installed via the AdminHub installer."
+    return 0
 }
 
 # Run comprehensive Homebrew cleanup
@@ -540,8 +487,9 @@ output_variables() {
     echo ""
     echo "# Add to PATH if needed:"
     echo "export PATH=\"$BREW_PREFIX/bin:$BREW_PREFIX/sbin:\$PATH\""
-    if [[ -n "$PYTHON_LIBEXEC_DIR" ]] && [[ -d "$PYTHON_LIBEXEC_DIR" ]]; then
-        echo "export PATH=\"$PYTHON_LIBEXEC_DIR:\$PATH\""
+    # Add official Python to PATH if available
+    if [[ -d "/Library/Frameworks/Python.framework/Versions/3.13/bin" ]]; then
+        echo "export PATH=\"/Library/Frameworks/Python.framework/Versions/3.13/bin:\$PATH\""
     fi
 }
 

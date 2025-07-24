@@ -49,7 +49,7 @@ case $COMMAND in
         # Create admin tools directory
         mkdir -p "$ADMIN_TOOLS_DIR/bin"
         
-        # Check installed tools (Homebrew must not run as root!)
+        # Check installed tools
         
         # Function to check if tool is installed
         check_tool() {
@@ -61,16 +61,17 @@ case $COMMAND in
                 return 0
             fi
             
-            # Check common Homebrew locations
-            if [ -e "/opt/homebrew/bin/$tool" ] || [ -e "/usr/local/bin/$tool" ]; then
-                return 0
+            # Check common Homebrew locations for non-Python tools
+            if [[ "$tool" != "python"* ]] && [[ "$tool" != "pip"* ]]; then
+                if [ -e "/opt/homebrew/bin/$tool" ] || [ -e "/usr/local/bin/$tool" ]; then
+                    return 0
+                fi
             fi
             
-            # Special case for python/pip - check libexec directories
-            if [[ "$tool" == "python" ]] || [[ "$tool" == "pip" ]]; then
-                if [ -e "/opt/homebrew/opt/python@3.13/libexec/bin/$tool" ] || \
-                   [ -e "/opt/homebrew/opt/python@3.12/libexec/bin/$tool" ] || \
-                   [ -e "/opt/homebrew/opt/python@3.11/libexec/bin/$tool" ]; then
+            # Special case for python/pip - check official Python location
+            if [[ "$tool" == "python" ]] || [[ "$tool" == "pip" ]] || \
+               [[ "$tool" == "python3" ]] || [[ "$tool" == "pip3" ]]; then
+                if [ -e "/Library/Frameworks/Python.framework/Versions/3.13/bin/$tool" ]; then
                     return 0
                 fi
             fi
@@ -124,11 +125,28 @@ case $COMMAND in
             fi
             
             
-            # Create temporary script for installation
+            # Install official Python if needed
+            if ! check_tool "python3" "Python3" || ! check_tool "python" "Python"; then
+                echo "📦 Installing official Python from python.org..."
+                
+                # Get the directory of this script
+                CURRENT_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+                UTILS_DIR="$(dirname "$CURRENT_SCRIPT_DIR")/utils"
+                
+                # Run the official Python installer
+                if [ -f "$UTILS_DIR/install_official_python.sh" ]; then
+                    "$UTILS_DIR/install_official_python.sh"
+                else
+                    echo -e "${RED}❌ Python installer script not found${NC}"
+                    exit 1
+                fi
+            fi
+            
+            # Create temporary script for other tools installation
             INSTALL_SCRIPT="/tmp/adminhub_install_tools.sh"
             cat > "$INSTALL_SCRIPT" << 'INSTALLEOF'
 #!/bin/bash
-echo "📦 Installing tools via Homebrew..."
+echo "📦 Installing other tools via Homebrew..."
 
 # Array of tools to install
 TOOLS_TO_INSTALL=""
@@ -138,29 +156,6 @@ if ! command -v git &> /dev/null && ! [ -e "/opt/homebrew/bin/git" ] && ! [ -e "
     TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL git"
 fi
 
-# For Python, we need to check if python3 is installed but python/pip symlinks are missing
-PYTHON_INSTALLED=false
-PYTHON_VERSION=""
-
-# Check for existing Python installations
-for version in 3.13 3.12 3.11; do
-    if [ -e "/opt/homebrew/opt/python@$version/libexec/bin/python" ]; then
-        PYTHON_INSTALLED=true
-        PYTHON_VERSION=$version
-        break
-    fi
-done
-
-# Also check if python3 exists
-if command -v python3 &> /dev/null || [ -e "/opt/homebrew/bin/python3" ]; then
-    PYTHON_INSTALLED=true
-fi
-
-# Only install Python if it's not already installed
-if [ "$PYTHON_INSTALLED" = false ]; then
-    TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL python"
-fi
-
 if [ -n "$TOOLS_TO_INSTALL" ]; then
     echo "Installing: $TOOLS_TO_INSTALL"
     brew install $TOOLS_TO_INSTALL
@@ -168,9 +163,6 @@ if [ -n "$TOOLS_TO_INSTALL" ]; then
     echo "✅ Installation completed!"
 else
     echo "✅ All core tools already installed!"
-    if [ "$PYTHON_INSTALLED" = true ]; then
-        echo "   Python is installed - will create symlinks for python/pip commands"
-    fi
 fi
 INSTALLEOF
             
@@ -244,44 +236,24 @@ INSTALLEOF
             echo "   ⚠️  Could not find brew executable"
         fi
         
-        # Find the correct paths and create symlinks
-        if command -v python3 &> /dev/null; then
-            create_symlink "$(which python3)" "$ADMIN_TOOLS_DIR/bin/python3"
-            # Also link pip3 if it exists
-            if command -v pip3 &> /dev/null; then
-                create_symlink "$(which pip3)" "$ADMIN_TOOLS_DIR/bin/pip3"
-            fi
-        fi
+        # Create symlinks for official Python
+        OFFICIAL_PYTHON_PATH="/Library/Frameworks/Python.framework/Versions/3.13/bin"
         
-        # Link python and pip (not just python3) - check multiple Python versions
-        PYTHON_LINKED=false
-        for VERSION in 3.13 3.12 3.11 3.10; do
-            # Check both common Homebrew locations
-            for PREFIX in "/opt/homebrew" "/usr/local"; do
-                PYTHON_LIBEXEC="$PREFIX/opt/python@$VERSION/libexec/bin"
-                if [ -e "$PYTHON_LIBEXEC/python" ]; then
-                    create_symlink "$PYTHON_LIBEXEC/python" "$ADMIN_TOOLS_DIR/bin/python"
-                    create_symlink "$PYTHON_LIBEXEC/pip" "$ADMIN_TOOLS_DIR/bin/pip"
-                    PYTHON_LINKED=true
-                    break 2
-                fi
-            done
-        done
-        
-        # Fallback if no libexec Python found
-        if [ "$PYTHON_LINKED" = false ]; then
-            if command -v python &> /dev/null; then
-                create_symlink "$(which python)" "$ADMIN_TOOLS_DIR/bin/python"
-                if command -v pip &> /dev/null; then
-                    create_symlink "$(which pip)" "$ADMIN_TOOLS_DIR/bin/pip"
-                fi
-            else
-                # Last resort: link python3 to python
-                if [ -e "$ADMIN_TOOLS_DIR/bin/python3" ]; then
-                    create_symlink "$ADMIN_TOOLS_DIR/bin/python3" "$ADMIN_TOOLS_DIR/bin/python"
-                fi
-                if [ -e "$ADMIN_TOOLS_DIR/bin/pip3" ]; then
-                    create_symlink "$ADMIN_TOOLS_DIR/bin/pip3" "$ADMIN_TOOLS_DIR/bin/pip"
+        # Link all Python commands from official installation
+        if [ -d "$OFFICIAL_PYTHON_PATH" ]; then
+            create_symlink "$OFFICIAL_PYTHON_PATH/python3" "$ADMIN_TOOLS_DIR/bin/python3"
+            create_symlink "$OFFICIAL_PYTHON_PATH/python" "$ADMIN_TOOLS_DIR/bin/python"
+            create_symlink "$OFFICIAL_PYTHON_PATH/pip3" "$ADMIN_TOOLS_DIR/bin/pip3"
+            create_symlink "$OFFICIAL_PYTHON_PATH/pip" "$ADMIN_TOOLS_DIR/bin/pip"
+        else
+            echo "   ⚠️  Official Python not found at expected location"
+            # Fallback to any python3 found in PATH
+            if command -v python3 &> /dev/null; then
+                create_symlink "$(which python3)" "$ADMIN_TOOLS_DIR/bin/python3"
+                create_symlink "$(which python3)" "$ADMIN_TOOLS_DIR/bin/python"
+                if command -v pip3 &> /dev/null; then
+                    create_symlink "$(which pip3)" "$ADMIN_TOOLS_DIR/bin/pip3"
+                    create_symlink "$(which pip3)" "$ADMIN_TOOLS_DIR/bin/pip"
                 fi
             fi
         fi

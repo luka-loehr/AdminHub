@@ -18,6 +18,16 @@ GUEST_HOME="/Users/Guest"
 # Wait briefly until the home directory is fully created
 sleep 1
 
+# Create pip configuration for Guest user
+echo "[$(date)] Creating pip configuration" >> /tmp/adminhub-setup.log
+mkdir -p "$GUEST_HOME/.config/pip"
+cat > "$GUEST_HOME/.config/pip/pip.conf" << 'EOF'
+[global]
+break-system-packages = true
+user = true
+EOF
+chmod 644 "$GUEST_HOME/.config/pip/pip.conf" 2>/dev/null || true
+
 # Create .zshrc with our auto-setup
 echo "[$(date)] Creating .zshrc" >> /tmp/adminhub-setup.log
 cat > "$GUEST_HOME/.zshrc" << 'EOF'
