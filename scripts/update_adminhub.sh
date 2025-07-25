@@ -39,6 +39,8 @@ check_git_repo() {
         if [[ ! "$response" =~ ^[yY]$ ]]; then
             return 1
         fi
+            return 1
+        fi
     fi
     
     return 0

@@ -74,7 +74,7 @@ show_help() {
     echo -e "${CLI_INFO}Installation & Setup:${CLI_NC}"
     echo "  install         Install AdminHub system"
     echo "  uninstall       Remove AdminHub system"
-    echo "  update          Update AdminHub and/or dependencies"
+    echo "  update          Update AdminHub and all dependencies"
     echo ""
     echo -e "${CLI_INFO}System Management:${CLI_NC}"
     echo "  status          Show system status"
@@ -510,90 +510,46 @@ cmd_permissions() {
     esac
 }
 
-# Update commands
+# Update command
 cmd_update() {
-    case "$SUBCOMMAND" in
-        ""|"adminhub")
-            print_info "Checking for AdminHub updates..."
-            
-            # The update script handles its own root requirements
-            local update_script="$SCRIPT_DIR/update_adminhub.sh"
-            
-            if [[ ! -f "$update_script" ]]; then
-                print_error "Update script not found: $update_script"
-                exit 1
-            fi
-            
-            if [[ "$DRY_RUN" == "true" ]]; then
-                print_info "Would run update check and installation"
-                return
-            fi
-            
-            # Run the update script
-            bash "$update_script"
-            local update_result=$?
-            
-            if [[ $update_result -eq 0 ]]; then
-                print_success "Update process completed"
-            elif [[ $update_result -eq 2 ]]; then
-                # Exit code 2 means already up to date
-                print_success "AdminHub is already up to date!"
-            else
-                print_error "Update process failed"
-                exit 1
-            fi
-            ;;
-        
-        "deps"|"dependencies")
-            require_root
-            print_info "Updating all dependencies..."
-            
-            local deps_script="$SCRIPT_DIR/utils/update_dependencies.sh"
-            
-            if [[ ! -f "$deps_script" ]]; then
-                print_error "Dependencies update script not found"
-                exit 1
-            fi
-            
-            if [[ "$DRY_RUN" == "true" ]]; then
-                print_info "Would update Python, Git, Homebrew, and pip"
-                return
-            fi
-            
-            # Run the dependencies update script
-            bash "$deps_script"
-            local deps_result=$?
-            
-            if [[ $deps_result -eq 0 ]]; then
-                print_success "All dependencies updated successfully"
-            else
-                print_warn "Some dependencies could not be updated"
-            fi
-            ;;
-        
-        "all")
-            print_info "Updating AdminHub and all dependencies..."
-            
-            # First update AdminHub
-            SUBCOMMAND="adminhub" cmd_update
-            
-            echo ""
-            
-            # Then update dependencies
-            SUBCOMMAND="dependencies" cmd_update
-            ;;
-        
-        *)
-            print_error "Unknown update subcommand: $SUBCOMMAND"
-            echo "Available: adminhub, deps/dependencies, all"
-            echo ""
-            echo "Examples:"
-            echo "  $0 update              # Update AdminHub only"
-            echo "  $0 update deps         # Update dependencies only"
-            echo "  $0 update all          # Update AdminHub and dependencies"
-            exit 1
-            ;;
-    esac
+    require_root
+    
+    print_info "Updating AdminHub and all dependencies..."
+    
+    if [[ "$DRY_RUN" == "true" ]]; then
+        print_info "Would update AdminHub, Python, Git, Homebrew, and pip"
+        return
+    fi
+    
+    # Update AdminHub first
+    print_info "Pulling latest AdminHub from GitHub..."
+    
+    # Change to repo directory
+    cd "$(dirname "$SCRIPT_DIR")"
+    
+    # Stash any local changes
+    if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+        git stash push -m "AdminHub update stash $(date +%Y%m%d_%H%M%S)" >/dev/null 2>&1
+    fi
+    
+    # Pull latest changes
+    git fetch --all --tags >/dev/null 2>&1
+    git pull origin main >/dev/null 2>&1 || git pull origin master >/dev/null 2>&1
+    
+    # Make scripts executable
+    find "$SCRIPT_DIR" -name "*.sh" -type f -exec chmod +x {} \; 2>/dev/null
+    
+    print_success "AdminHub code updated"
+    
+    # Update all dependencies
+    print_info "Updating Python, Git, Homebrew, and pip..."
+    bash "$SCRIPT_DIR/utils/update_dependencies.sh"
+    
+    # Run installation to apply updates
+    print_info "Applying updates..."
+    bash "$SCRIPT_DIR/install_adminhub.sh"
+    
+    print_success "Update completed successfully!"
 }
 
 
