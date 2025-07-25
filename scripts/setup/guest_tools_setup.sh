@@ -71,7 +71,16 @@ case $COMMAND in
             # Special case for python/pip - check official Python location
             if [[ "$tool" == "python" ]] || [[ "$tool" == "pip" ]] || \
                [[ "$tool" == "python3" ]] || [[ "$tool" == "pip3" ]]; then
-                if [ -e "/Library/Frameworks/Python.framework/Versions/3.13/bin/$tool" ]; then
+                # Source Python utils to find dynamic version
+                source "$(dirname "${BASH_SOURCE[0]}")/../utils/python_utils.sh" 2>/dev/null || true
+                
+                # Try to get Python bin directory
+                local python_bin_dir=""
+                if declare -f get_python_bin_dir >/dev/null 2>&1; then
+                    python_bin_dir=$(get_python_bin_dir 2>/dev/null || echo "")
+                fi
+                
+                if [[ -n "$python_bin_dir" ]] && [[ -e "$python_bin_dir/$tool" ]]; then
                     return 0
                 fi
             fi
@@ -236,17 +245,23 @@ INSTALLEOF
             echo "   ⚠️  Could not find brew executable"
         fi
         
-        # Create symlinks for official Python
-        OFFICIAL_PYTHON_PATH="/Library/Frameworks/Python.framework/Versions/3.13/bin"
+        # Source Python utils to find dynamic version
+        source "$(dirname "${BASH_SOURCE[0]}")/../utils/python_utils.sh" 2>/dev/null || true
         
-        # Link all Python commands from official installation
-        if [ -d "$OFFICIAL_PYTHON_PATH" ]; then
+        # Get Python bin directory dynamically
+        OFFICIAL_PYTHON_PATH=""
+        if declare -f get_python_bin_dir >/dev/null 2>&1; then
+            OFFICIAL_PYTHON_PATH=$(get_python_bin_dir 2>/dev/null || echo "")
+        fi
+        
+        # Create symlinks for official Python
+        if [[ -n "$OFFICIAL_PYTHON_PATH" ]] && [[ -d "$OFFICIAL_PYTHON_PATH" ]]; then
             create_symlink "$OFFICIAL_PYTHON_PATH/python3" "$ADMIN_TOOLS_DIR/bin/python3"
             create_symlink "$OFFICIAL_PYTHON_PATH/python" "$ADMIN_TOOLS_DIR/bin/python"
             create_symlink "$OFFICIAL_PYTHON_PATH/pip3" "$ADMIN_TOOLS_DIR/bin/pip3"
             create_symlink "$OFFICIAL_PYTHON_PATH/pip" "$ADMIN_TOOLS_DIR/bin/pip"
         else
-            echo "   ⚠️  Official Python not found at expected location"
+            echo "   ⚠️  Official Python not found"
             # Fallback to any python3 found in PATH
             if command -v python3 &> /dev/null; then
                 create_symlink "$(which python3)" "$ADMIN_TOOLS_DIR/bin/python3"

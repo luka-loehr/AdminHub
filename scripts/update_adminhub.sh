@@ -171,6 +171,23 @@ run_post_update_tasks() {
     return 0
 }
 
+# Update dependencies
+update_dependencies() {
+    echo ""
+    echo -n "Update all dependencies (Python, Git, Homebrew)? (Y/n): "
+    read -r response
+    
+    if [[ ! "$response" =~ ^[nN]$ ]]; then
+        log_info "Updating dependencies..."
+        
+        if [[ -f "$SCRIPT_DIR/utils/update_dependencies.sh" ]]; then
+            sudo "$SCRIPT_DIR/utils/update_dependencies.sh"
+        else
+            log_warn "Dependency update script not found"
+        fi
+    fi
+}
+
 # Main update function
 run_update() {
     echo -e "${BLUE}╔═══════════════════════════════════════╗${NC}"
@@ -223,7 +240,11 @@ run_update() {
     echo "New version: $(get_current_version)"
     echo ""
     
+    # Update dependencies
+    update_dependencies
+    
     # Ask to run installation
+    echo ""
     echo -e "${YELLOW}The update has been downloaded successfully.${NC}"
     echo "To complete the update, the installation script needs to run."
     echo ""

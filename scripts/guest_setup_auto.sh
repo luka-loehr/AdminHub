@@ -60,7 +60,22 @@ if [[ ! -d "$GUEST_TOOLS_DIR/bin" ]]; then
     }
     
     # Set PATH - include official Python directory and user pip packages
-    export PATH="$GUEST_TOOLS_DIR/bin:/Library/Frameworks/Python.framework/Versions/3.13/bin:$PATH"
+    # Source Python utils to find dynamic version
+    if [ -f "/opt/admin-tools/utils/python_utils.sh" ]; then
+        source "/opt/admin-tools/utils/python_utils.sh" 2>/dev/null || true
+    fi
+    
+    # Get Python bin directory dynamically
+    PYTHON_BIN_DIR=""
+    if declare -f get_python_bin_dir >/dev/null 2>&1; then
+        PYTHON_BIN_DIR=$(get_python_bin_dir 2>/dev/null || echo "")
+    fi
+    
+    if [[ -n "$PYTHON_BIN_DIR" ]]; then
+        export PATH="$GUEST_TOOLS_DIR/bin:$PYTHON_BIN_DIR:$PATH"
+    else
+        export PATH="$GUEST_TOOLS_DIR/bin:$PATH"
+    fi
     
     # Add user pip install directory to PATH
     export PATH="$HOME/.local/bin:$PATH"
@@ -85,7 +100,22 @@ if [[ ! -d "$GUEST_TOOLS_DIR/bin" ]]; then
     echo ""
 else
     # Tools already set up, just set PATH - include official Python directory and user pip packages
-    export PATH="$GUEST_TOOLS_DIR/bin:/Library/Frameworks/Python.framework/Versions/3.13/bin:$PATH"
+    # Source Python utils to find dynamic version
+    if [ -f "/opt/admin-tools/utils/python_utils.sh" ]; then
+        source "/opt/admin-tools/utils/python_utils.sh" 2>/dev/null || true
+    fi
+    
+    # Get Python bin directory dynamically
+    PYTHON_BIN_DIR=""
+    if declare -f get_python_bin_dir >/dev/null 2>&1; then
+        PYTHON_BIN_DIR=$(get_python_bin_dir 2>/dev/null || echo "")
+    fi
+    
+    if [[ -n "$PYTHON_BIN_DIR" ]]; then
+        export PATH="$GUEST_TOOLS_DIR/bin:$PYTHON_BIN_DIR:$PATH"
+    else
+        export PATH="$GUEST_TOOLS_DIR/bin:$PATH"
+    fi
     
     # Add user pip install directory to PATH
     export PATH="$HOME/.local/bin:$PATH"

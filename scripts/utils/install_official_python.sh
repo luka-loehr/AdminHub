@@ -10,19 +10,91 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/logging.sh"
 
+# Function to get latest Python version
+get_latest_python_version() {
+    log_info "Fetching latest Python version from python.org..."
+    
+    # Fetch the downloads page and extract version numbers
+    local versions_html=$(curl -s "https://www.python.org/downloads/" 2>/dev/null || echo "")
+    
+    if [[ -z "$versions_html" ]]; then
+        log_error "Failed to fetch Python versions from python.org"
+        return 1
+    fi
+    
+    # Extract version numbers from download links (looking for stable releases)
+    # Pattern matches versions like 3.13.5, 3.12.8, etc.
+    local latest_version=$(echo "$versions_html" | \
+        grep -oE 'Python [0-9]+\.[0-9]+\.[0-9]+' | \
+        grep -v 'rc\|a\|b' | \
+        sed 's/Python //' | \
+        sort -V | \
+        tail -1)
+    
+    if [[ -z "$latest_version" ]]; then
+        log_error "Could not determine latest Python version"
+        return 1
+    fi
+    
+    echo "$latest_version"
+    return 0
+}
+
+# Get latest version
+PYTHON_VERSION=$(get_latest_python_version)
+if [[ -z "$PYTHON_VERSION" ]]; then
+    # Fallback to a known good version
+    log_warn "Using fallback Python version 3.13.5"
+    PYTHON_VERSION="3.13.5"
+fi
+
+# Extract major.minor version for paths
+PYTHON_MAJOR_MINOR=$(echo "$PYTHON_VERSION" | cut -d. -f1,2)
+
 # Configuration
-PYTHON_VERSION="3.13.5"
 PYTHON_PKG_URL="https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-macos11.pkg"
 PYTHON_PKG_FILE="/tmp/python-${PYTHON_VERSION}-macos11.pkg"
-PYTHON_INSTALL_PATH="/Library/Frameworks/Python.framework/Versions/3.13"
+PYTHON_INSTALL_PATH="/Library/Frameworks/Python.framework/Versions/${PYTHON_MAJOR_MINOR}"
 PYTHON_BIN_PATH="${PYTHON_INSTALL_PATH}/bin"
+
+# Function to find any official Python installation
+find_official_python() {
+    # Check for any Python version in the Frameworks directory
+    local framework_base="/Library/Frameworks/Python.framework/Versions"
+    if [[ -d "$framework_base" ]]; then
+        # Find the highest installed version
+        local installed_version=$(ls -1 "$framework_base" | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -1)
+        if [[ -n "$installed_version" ]]; then
+            echo "$installed_version"
+            return 0
+        fi
+    fi
+    return 1
+}
 
 # Function to check if official Python is already installed
 check_official_python() {
-    if [ -d "$PYTHON_INSTALL_PATH" ] && [ -x "${PYTHON_BIN_PATH}/python3" ]; then
-        local installed_version=$("${PYTHON_BIN_PATH}/python3" --version 2>&1 | cut -d' ' -f2)
-        log_info "Official Python ${installed_version} is already installed"
-        return 0
+    local existing_version=$(find_official_python)
+    if [[ -n "$existing_version" ]]; then
+        local existing_path="/Library/Frameworks/Python.framework/Versions/$existing_version"
+        if [[ -x "$existing_path/bin/python3" ]]; then
+            local installed_full_version=$("$existing_path/bin/python3" --version 2>&1 | cut -d' ' -f2)
+            log_info "Official Python ${installed_full_version} is already installed"
+            
+            # Update our paths to use the existing installation
+            PYTHON_MAJOR_MINOR="$existing_version"
+            PYTHON_INSTALL_PATH="$existing_path"
+            PYTHON_BIN_PATH="${PYTHON_INSTALL_PATH}/bin"
+            
+            # Check if it's the latest version
+            if [[ "$installed_full_version" == "$PYTHON_VERSION" ]]; then
+                log_info "Already have the latest version"
+                return 0
+            else
+                log_info "Newer version $PYTHON_VERSION is available (current: $installed_full_version)"
+                return 1
+            fi
+        fi
     fi
     return 1
 }
@@ -145,10 +217,22 @@ install_official_python() {
 
 # Function to get Python paths for symlink creation
 get_python_paths() {
-    echo "PYTHON_PATH=${PYTHON_BIN_PATH}/python"
-    echo "PYTHON3_PATH=${PYTHON_BIN_PATH}/python3"
-    echo "PIP_PATH=${PYTHON_BIN_PATH}/pip"
-    echo "PIP3_PATH=${PYTHON_BIN_PATH}/pip3"
+    # Try to find the actual installation
+    local actual_version=$(find_official_python)
+    if [[ -n "$actual_version" ]]; then
+        local actual_bin="/Library/Frameworks/Python.framework/Versions/$actual_version/bin"
+        echo "PYTHON_PATH=${actual_bin}/python"
+        echo "PYTHON3_PATH=${actual_bin}/python3"
+        echo "PIP_PATH=${actual_bin}/pip"
+        echo "PIP3_PATH=${actual_bin}/pip3"
+        echo "PYTHON_VERSION=$actual_version"
+    else
+        echo "PYTHON_PATH=${PYTHON_BIN_PATH}/python"
+        echo "PYTHON3_PATH=${PYTHON_BIN_PATH}/python3"
+        echo "PIP_PATH=${PYTHON_BIN_PATH}/pip"
+        echo "PIP3_PATH=${PYTHON_BIN_PATH}/pip3"
+        echo "PYTHON_VERSION=$PYTHON_MAJOR_MINOR"
+    fi
 }
 
 # Run if executed directly

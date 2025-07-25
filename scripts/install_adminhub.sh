@@ -106,17 +106,24 @@ else
     exit 1
 fi
 
-# Step 6: Run main setup
+# Step 6: Copy utilities to admin tools directory
+echo ""
+echo "🔧 Copying utilities..."
+mkdir -p /opt/admin-tools/utils
+cp scripts/utils/python_utils.sh /opt/admin-tools/utils/ 2>/dev/null || true
+chmod +x /opt/admin-tools/utils/python_utils.sh 2>/dev/null || true
+
+# Step 7: Run main setup
 echo ""
 echo "📦 Installing AdminHub tools..."
 ./scripts/setup/guest_tools_setup.sh
 
-# Step 7: Setup security wrappers
+# Step 8: Setup security wrappers
 echo ""
 echo "🔒 Setting up security wrappers..."
 ./scripts/utils/guest_security_wrapper.sh
 
-# Step 7b: Fix brew wrapper if needed (temporary fix until wrapper script is updated)
+# Step 8b: Fix brew wrapper if needed (temporary fix until wrapper script is updated)
 echo ""
 echo "🔧 Ensuring wrappers use dynamic path detection..."
 if [ -f "/opt/admin-tools/wrappers/brew" ]; then
@@ -192,12 +199,12 @@ EOF
     fi
 fi
 
-# Step 8: Fix permissions
+# Step 9: Fix permissions
 echo ""
 echo "🔐 Fixing permissions..."
 ./scripts/utils/fix_homebrew_permissions.sh
 
-# Step 8b: Setup pip configuration
+# Step 9b: Setup pip configuration
 echo ""
 echo "🐍 Setting up pip configuration..."
 ./scripts/utils/setup_pip_config.sh
@@ -219,7 +226,7 @@ for tool in brew python python3 pip pip3 git; do
     fi
 done
 
-# Step 9: Install LaunchAgent and guest setup scripts
+# Step 10: Install LaunchAgent and guest setup scripts
 echo ""
 echo "🚀 Installing LaunchAgent and guest setup scripts..."
 ./scripts/setup/setup_guest_shell_init.sh
@@ -239,8 +246,21 @@ echo ""
 ORIGINAL_USER=$(who am i | awk '{print $1}')
 USER_HOME=$(eval echo ~$ORIGINAL_USER)
 
+# Source Python utils to get dynamic Python path
+source ./scripts/utils/python_utils.sh 2>/dev/null || true
+
+# Get Python bin directory dynamically
+PYTHON_BIN_DIR=""
+if declare -f get_python_bin_dir >/dev/null 2>&1; then
+    PYTHON_BIN_DIR=$(get_python_bin_dir 2>/dev/null || echo "")
+fi
+
 # Add PATH for current session
-export PATH="/opt/admin-tools/bin:/Library/Frameworks/Python.framework/Versions/3.13/bin:$PATH"
+if [[ -n "$PYTHON_BIN_DIR" ]]; then
+    export PATH="/opt/admin-tools/bin:$PYTHON_BIN_DIR:$PATH"
+else
+    export PATH="/opt/admin-tools/bin:$PATH"
+fi
 
 # Update shell configuration files
 if [ -f "$USER_HOME/.zshrc" ]; then
@@ -248,7 +268,11 @@ if [ -f "$USER_HOME/.zshrc" ]; then
     if ! grep -q "/opt/admin-tools/bin" "$USER_HOME/.zshrc"; then
         echo "" >> "$USER_HOME/.zshrc"
         echo "# AdminHub Tools" >> "$USER_HOME/.zshrc"
-        echo "export PATH=\"/opt/admin-tools/bin:/Library/Frameworks/Python.framework/Versions/3.13/bin:\$PATH\"" >> "$USER_HOME/.zshrc"
+        if [[ -n "$PYTHON_BIN_DIR" ]]; then
+            echo "export PATH=\"/opt/admin-tools/bin:$PYTHON_BIN_DIR:\$PATH\"" >> "$USER_HOME/.zshrc"
+        else
+            echo "export PATH=\"/opt/admin-tools/bin:\$PATH\"" >> "$USER_HOME/.zshrc"
+        fi
     fi
 fi
 
@@ -257,7 +281,11 @@ if [ -f "$USER_HOME/.bash_profile" ]; then
     if ! grep -q "/opt/admin-tools/bin" "$USER_HOME/.bash_profile"; then
         echo "" >> "$USER_HOME/.bash_profile"
         echo "# AdminHub Tools" >> "$USER_HOME/.bash_profile"
-        echo "export PATH=\"/opt/admin-tools/bin:/Library/Frameworks/Python.framework/Versions/3.13/bin:\$PATH\"" >> "$USER_HOME/.bash_profile"
+        if [[ -n "$PYTHON_BIN_DIR" ]]; then
+            echo "export PATH=\"/opt/admin-tools/bin:$PYTHON_BIN_DIR:\$PATH\"" >> "$USER_HOME/.bash_profile"
+        else
+            echo "export PATH=\"/opt/admin-tools/bin:\$PATH\"" >> "$USER_HOME/.bash_profile"
+        fi
     fi
 fi
 
