@@ -11,6 +11,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/logging.sh"
 source "$SCRIPT_DIR/python_utils.sh" 2>/dev/null || true
 
+# Function to run command as original user (not root)
+run_as_user() {
+    if [[ "$EUID" -eq 0 ]] && [[ -n "${SUDO_USER:-}" ]]; then
+        # Running as root via sudo, execute as original user
+        sudo -u "$SUDO_USER" "$@"
+    else
+        # Not root or no sudo user, run normally
+        "$@"
+    fi
+}
+
 # Function to update Python to latest version
 update_python() {
     log_info "Checking for Python updates..."
@@ -31,9 +42,9 @@ update_git() {
     log_info "Checking for Git updates..."
     
     # Check if Git is installed via Homebrew
-    if command -v brew &>/dev/null && brew list git &>/dev/null 2>&1; then
+    if command -v brew &>/dev/null && run_as_user brew list git &>/dev/null 2>&1; then
         log_info "Updating Git via Homebrew..."
-        brew upgrade git 2>&1 || {
+        run_as_user brew upgrade git 2>&1 || {
             log_warn "Git is already at the latest version"
         }
     else
@@ -58,15 +69,15 @@ update_homebrew() {
         return 1
     fi
     
-    # Update Homebrew
+    # Update Homebrew (must run as regular user)
     log_info "Running brew update..."
-    brew update 2>&1 || {
+    run_as_user brew update 2>&1 || {
         log_error "Failed to update Homebrew"
         return 1
     }
     
     # Show Homebrew version
-    local brew_version=$(brew --version | head -1)
+    local brew_version=$(run_as_user brew --version | head -1)
     log_info "Current Homebrew version: $brew_version"
     
     return 0
@@ -83,26 +94,40 @@ update_pip_packages() {
     fi
     
     if [[ -z "$python_bin_dir" ]] || [[ ! -x "$python_bin_dir/python3" ]]; then
-        log_error "Python not found"
-        return 1
+        # Try to find any python3
+        if command -v python3 &>/dev/null; then
+            log_info "Using system Python for pip update"
+            python3 -m pip install --upgrade pip 2>&1 || {
+                log_error "Failed to update pip"
+                return 1
+            }
+            python3 -m pip install --upgrade setuptools 2>&1 || {
+                log_warn "Failed to update setuptools"
+            }
+            local pip_version=$(pip3 --version | cut -d' ' -f2)
+            log_info "Current pip version: $pip_version"
+        else
+            log_error "Python not found"
+            return 1
+        fi
+    else
+        # Update pip itself
+        log_info "Upgrading pip..."
+        "$python_bin_dir/python3" -m pip install --upgrade pip 2>&1 || {
+            log_error "Failed to update pip"
+            return 1
+        }
+        
+        # Update setuptools
+        log_info "Upgrading setuptools..."
+        "$python_bin_dir/python3" -m pip install --upgrade setuptools 2>&1 || {
+            log_warn "Failed to update setuptools"
+        }
+        
+        # Show pip version
+        local pip_version=$("$python_bin_dir/pip" --version | cut -d' ' -f2)
+        log_info "Current pip version: $pip_version"
     fi
-    
-    # Update pip itself
-    log_info "Upgrading pip..."
-    "$python_bin_dir/python3" -m pip install --upgrade pip 2>&1 || {
-        log_error "Failed to update pip"
-        return 1
-    }
-    
-    # Update setuptools
-    log_info "Upgrading setuptools..."
-    "$python_bin_dir/python3" -m pip install --upgrade setuptools 2>&1 || {
-        log_warn "Failed to update setuptools"
-    }
-    
-    # Show pip version
-    local pip_version=$("$python_bin_dir/pip" --version | cut -d' ' -f2)
-    log_info "Current pip version: $pip_version"
     
     return 0
 }
@@ -142,11 +167,11 @@ update_symlinks() {
                 
                 # Update other tool symlinks if needed
                 if command -v git &>/dev/null; then
-                    create_symlink "$(which git)" "$ADMIN_TOOLS_DIR/bin/git"
+                    create_symlink "$(run_as_user which git)" "$ADMIN_TOOLS_DIR/bin/git"
                 fi
                 
                 if command -v brew &>/dev/null; then
-                    create_symlink "$(which brew)" "$ADMIN_TOOLS_DIR/bin/brew"
+                    create_symlink "$(run_as_user which brew)" "$ADMIN_TOOLS_DIR/bin/brew"
                 fi
             fi
         )
