@@ -5,27 +5,17 @@
 # Functions to detect and work with official Python installations
 
 # Function to find the installed official Python version
+# HARDCODED to Python 3.13 - automatic detection disabled
 find_official_python_version() {
-    local framework_base="/Library/Frameworks/Python.framework/Versions"
-    if [[ -d "$framework_base" ]]; then
-        # Find the highest installed version
-        local version=$(ls -1 "$framework_base" 2>/dev/null | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -1)
-        if [[ -n "$version" ]]; then
-            echo "$version"
-            return 0
-        fi
-    fi
-    return 1
+    echo "3.13"
+    return 0
 }
 
 # Function to get Python bin directory
+# HARDCODED to Python 3.13 - automatic detection disabled
 get_python_bin_dir() {
-    local version=$(find_official_python_version)
-    if [[ -n "$version" ]]; then
-        echo "/Library/Frameworks/Python.framework/Versions/$version/bin"
-        return 0
-    fi
-    return 1
+    echo "/Library/Frameworks/Python.framework/Versions/3.13/bin"
+    return 0
 }
 
 # Export functions for use in other scripts
